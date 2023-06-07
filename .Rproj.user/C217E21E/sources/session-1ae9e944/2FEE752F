@@ -1,0 +1,26 @@
+{
+    "id": "2FEE752F",
+    "path": "~/GitHub/Honors-Project/datacleaning.Rmd",
+    "project_path": "datacleaning.Rmd",
+    "type": "r_markdown",
+    "hash": "3687471306",
+    "contents": "",
+    "dirty": false,
+    "created": 1686167024969.0,
+    "source_on_save": true,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "105,37",
+        "scrollLine": "87"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1686174402,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1686174402974,
+    "read_only": false,
+    "read_only_alternatives": []
+}

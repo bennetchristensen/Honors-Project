@@ -6,6 +6,7 @@ library(furrr)
 library(doParallel)
 library(foreach)
 library(stringr)
+library(xml2)
 ```
 
 
@@ -69,6 +70,39 @@ generaldynamicsMD <- foreach(i = 1994:2022, .combine = 'rbind') %dopar% {
 ```
 
 ```{r}
+prison <- foreach(i = 1979:2016, .combine = 'rbind') %dopar% {
+  library(rvest)
+  library(dplyr)
+  readUrl <- function(url) {
+    out <- tryCatch(
+        {
+            read_html(paste(url, sep="")) %>% html_element(xpath='//*[(@id = "csvLink")]') %>% html_attr("href")
+        },
+        error=function(cond) {
+            return(NA)
+        },
+        warning=function(cond) {
+            return(NA)
+        },
+        finally={
+        }
+    )    
+    return(out)
+}
+  y=readUrl(paste('https://www.fpds.gov/ezsearch/fpdsportal?indexName=awardfull&templateName=1.5.3&s=FPDS.GOV%2525252525252525252525252525252525252525252525252525252525252BtemplateName1.5.2%2525252525252525252525252525252525252525252525252525252525252BindexNameawardfull&q=CONTRACTING_AGENCY_NAME%3A%22FEDERAL+PRISON+SYSTEM%22+PRODUCT_OR_SERVICE_CODE%3A%22Q201%22+CONTRACT_FISCAL_YEAR%3A%22',as.character(i),'%22&x=0&y=0',sep=""))
+  if (is.na(y)==FALSE) { year_x <- read.csv(paste("https://www.fpds.gov/ezsearch/fpdsportal",y, sep=""))
+  year_name <- paste("year",i, sep = "")
+  assign(year_name,year_x) }
+}
+```
+
+
+
+```{r}
 parallel::stopCluster(cl = my.cluster)
+```
+
+```{r}
+write.csv(prison, file = "prisons.csv")
 ```
 

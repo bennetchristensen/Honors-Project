@@ -1,0 +1,7 @@
+"0","#This chunk and the on bellow it helps set up parallel processing. If you have have enough time in theory this does not need to be done in parallel"
+"0","parallel::detectCores()"
+"1","[1]"
+"1"," 16"
+"1","
+"
+"0","n.cores <- parallel::detectCores() - 1"

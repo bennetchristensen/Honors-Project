@@ -1,0 +1,108 @@
+```{r}
+library(dplyr)
+library(rvest)
+library(rlang)
+library(furrr)
+library(doParallel)
+library(foreach)
+library(stringr)
+library(xml2)
+```
+
+
+```{r}
+Sys.setenv(http_proxy="http://proxyserver:port") #proxy address so I can web scrape
+```
+
+```{r}
+#This chunk and the on bellow it helps set up parallel processing. If you have have enough time in theory this does not need to be done in parallel
+parallel::detectCores()
+n.cores <- parallel::detectCores() - 1
+```
+```{r}
+#create the cluster
+my.cluster <- parallel::makeCluster(
+  n.cores, 
+  type = "PSOCK"
+  )
+
+#check cluster definition (optional)
+print(my.cluster)
+
+#register it to be used by %dopar%
+doParallel::registerDoParallel(cl = my.cluster)
+
+#check if it is registered (optional)
+foreach::getDoParRegistered()
+
+#how many workers are available? (optional)
+foreach::getDoParWorkers()
+```
+
+
+
+```{r}
+#this is an example of a data scrape request. This is specifically one company and one state over a period of time. My project specifically focused on Arms contractors in MD, but to adapt this to hospitals all I would need to do is change the pasted url.
+generaldynamicsMD <- foreach(i = 1994:2022, .combine = 'rbind') %dopar% {
+  library(rvest)
+  library(dplyr)
+  readUrl <- function(url) {
+    out <- tryCatch(
+        {
+            read_html(paste(url, sep="")) %>% html_element(xpath='//*[(@id = "csvLink")]') %>% html_attr("href")
+        },
+        error=function(cond) {
+            return(NA)
+        },
+        warning=function(cond) {
+            return(NA)
+        },
+        finally={
+        }
+    )    
+    return(out)
+}
+  y=readUrl(paste('https://www.fpds.gov/ezsearch/fpdsportal?indexName=awardfull&templateName=1.5.3&s=FPDS.GOV%252525252525252525252525252525252BtemplateName1.5.2%252525252525252525252525252525252BindexNameawardfull&q=ULTIMATE_UEI_NAME%3A%22GENERAL+DYNAMICS%22+CONTRACT_FISCAL_YEAR%3A%22',as.character(i),'%22+VENDOR_ADDRESS_STATE_CODE%3A%22MD%22&x=24&y=13',sep=""))
+  if (is.na(y)==FALSE) { year_x <- read.csv(paste("https://www.fpds.gov/ezsearch/fpdsportal",y, sep=""))
+  year_name <- paste("year",i, sep = "")
+  assign(year_name,year_x) }
+}
+```
+
+```{r}
+prison <- foreach(i = 1979:2016, .combine = 'rbind') %dopar% {
+  library(rvest)
+  library(dplyr)
+  readUrl <- function(url) {
+    out <- tryCatch(
+        {
+            read_html(paste(url, sep="")) %>% html_element(xpath='//*[(@id = "csvLink")]') %>% html_attr("href")
+        },
+        error=function(cond) {
+            return(NA)
+        },
+        warning=function(cond) {
+            return(NA)
+        },
+        finally={
+        }
+    )    
+    return(out)
+}
+  y=readUrl(paste('https://www.fpds.gov/ezsearch/fpdsportal?indexName=awardfull&templateName=1.5.3&s=FPDS.GOV%2525252525252525252525252525252525252525252525252525252525252BtemplateName1.5.2%2525252525252525252525252525252525252525252525252525252525252BindexNameawardfull&q=CONTRACTING_AGENCY_NAME%3A%22FEDERAL+PRISON+SYSTEM%22+PRODUCT_OR_SERVICE_CODE%3A%22Q201%22+CONTRACT_FISCAL_YEAR%3A%22',as.character(i),'%22&x=0&y=0',sep=""))
+  if (is.na(y)==FALSE) { year_x <- read.csv(paste("https://www.fpds.gov/ezsearch/fpdsportal",y, sep=""))
+  year_name <- paste("year",i, sep = "")
+  assign(year_name,year_x) }
+}
+```
+
+
+
+```{r}
+parallel::stopCluster(cl = my.cluster)
+```
+
+```{r}
+write.csv(prison, file = "prisons.csv")
+```
+
