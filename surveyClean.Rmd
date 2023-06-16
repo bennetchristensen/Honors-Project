@@ -1,0 +1,67 @@
+```{r}
+library(tidyverse)
+```
+
+```{r}
+small <- da37692.0002[775]
+small <- small %>% filter(V0772 == "CA")
+```
+
+```{r}
+tiny <- da04572.0002[1056]
+tiny <- tiny %>% filter(V1056 == "(06) California")
+```
+
+
+```{r}
+122374/(122374+139446+897316)
+(1227+119)/(20064)
+1375/(20064)
+```
+```{r}
+(1374+347)/14499
+1757/14499
+
+```
+  
+```{r}
+work2004 <- da04572.0002 %>% select("V1057", "V0014","V0018","V0029","V0030","V0031","V0032","V0033", "V0034", "V0059", "V0058", "V1740", "V1857","V2272", "V2273")
+work2016 <- da37692.0002 %>% select("V0772", "RV0002","RV0003", "RV0008", "RV0051", "RV0054", "V1145", "V1201", "V1202")
+```
+
+```{r}
+#Creating Race Categorical for 2004 based on classification in 2016
+work2004 <- work2004 %>% mutate(Race = as.factor(case_when(
+  (work2004$V0029 == "(1) White") + (work2004$V0030 == "(2) Black or African American") + (work2004$V0031 == "(3) American Indian or Alaska Native") + (work2004$V0032 == "(4) Asian") > 0 & work2004$V0018 == "(2) No" ~ "(6) 6 = 2+ Races (NH)",
+  work2004$V0029 == "(1) White" & work2004$V0018 == "(2) No" ~ "(1) 1 = White (NH)",
+  work2004$V0030 == "(2) Black or African American" & work2004$V0018 == "(2) No" ~ "(2) 2 = Black (NH)",
+  work2004$V0018 == "(1) Yes" ~ "(3) 3 = Hispanic",
+  work2004$V0031 == "(3) American Indian or Alaska Native" & work2004$V0018 == "(2) No" ~ "(4) 4 = American Indian/Alaska Native (NH)",
+  work2004$V0032 == "(4) Asian" | work2004$V0033 == "(5) Native Hawaiian or other Pacific Islander" & work2004$V0018 == "(2) No" ~ "(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)",
+  work2004$V0034 == "(6) All other races" & work2004$V0018 == "(2) No" ~ "(8) 8 = Other (NH)",
+  TRUE ~ "(9) 9 = Uncategorized - Missing"
+)))
+```
+
+```{r}
+#Creating Age Categorical for 2004 based on classification in 2016
+work2004 <- work2004 %>% as.factor(mutate(AgeCat = case_when(
+  between(work2004$V0014, 18, 24) ~ "(01) 1 = 18-24",
+  between(work2004$V0014, 25, 34) ~ "(02) 2 = 25-34",
+  between(work2004$V0014, 35, 44) ~ "(03) 3 = 35-44",
+  between(work2004$V0014, 45, 54) ~ "(04) 4 = 45-54",
+  between(work2004$V0014, 55, 64) ~ "(05) 5 = 55-64",
+  work2004$V0014 > 64 ~ "(06) 6 = 65 or Older",
+  TRUE ~ "(99) 99 = Blank"
+)))
+```
+
+```{r}
+#Creating Veteran for 2004 based on classification in 2016
+work2004 <-work2004 %>% as.factor(mutate(Veteran = case_when(
+  work2004$V0059 == "(2) No" ~ "(02) 2 = Non-veteran",
+  work2004$V0059 == "(1) Yes" ~"(01) 1 = Veteran",
+  TRUE ~ "(98) 98 = DK/REF"
+)))
+```
+
