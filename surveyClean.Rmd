@@ -45,7 +45,7 @@ work2004 <- work2004 %>% mutate(Race = as.factor(case_when(
 
 ```{r}
 #Creating Age Categorical for 2004 based on classification in 2016
-work2004 <- work2004 %>% as.factor(mutate(AgeCat = case_when(
+work2004 <- work2004 %>% mutate(AgeCat = as.factor(case_when(
   between(work2004$V0014, 18, 24) ~ "(01) 1 = 18-24",
   between(work2004$V0014, 25, 34) ~ "(02) 2 = 25-34",
   between(work2004$V0014, 35, 44) ~ "(03) 3 = 35-44",
@@ -58,10 +58,56 @@ work2004 <- work2004 %>% as.factor(mutate(AgeCat = case_when(
 
 ```{r}
 #Creating Veteran for 2004 based on classification in 2016
-work2004 <-work2004 %>% as.factor(mutate(Veteran = case_when(
+work2004 <-work2004 %>% mutate(Veteran = as.factor(case_when(
   work2004$V0059 == "(2) No" ~ "(02) 2 = Non-veteran",
   work2004$V0059 == "(1) Yes" ~"(01) 1 = Veteran",
   TRUE ~ "(98) 98 = DK/REF"
+)))
+```
+
+```{r}
+#Creating Marital Status for 2004 based on classification in 2016
+work2004 <-work2004 %>% mutate(Marriage = as.factor(case_when(
+  work2004$V0058 == "(5) Never Married" ~ "(05) 5 = Never married",
+  work2004$V0058 == "(1) Married" ~"(01) 1 = Married",
+  work2004$V0058 == "(4) Separated (Not because of incarceration)" ~"(03) 3 = Separated",
+  work2004$V0058 == "(3) Divorced" ~"(04) 4 = Divorced",
+  work2004$V0058 == "(2) Widowed" ~"(02) 2 = Widowed",
+  TRUE ~ "(98) 98 = DK/REF"
+)))
+```
+
+```{r}
+#creating a numerical school year to make creating categories easier
+work2004 <- work2004 %>% mutate(numericSchool = as.numeric(gsub("[[:space:]]", "",gsub("[\\(\\)]", "", regmatches(work2004$V1740, gregexpr("\\([[:digit:]]*?\\)", work2004$V1740))))))
+#Creating Marital Status for 2004 based on classification in 2016. For the sake of this variable I am assuming that the highest grade of school attended is the highest grade of school completed. We just can't know
+work2004 <-work2004 %>% mutate(Schooling = as.factor(case_when(
+  (work2004$numericSchool < 12) ~ "(1) 1 = Less Than High School",
+  work2004$numericSchool == 12 ~ "(2) 2 = High School Graduate",
+  between(work2004$numericSchool,13,14) ~ "(3) 3 = Some College",
+  between(work2004$numericSchool, 16,18) ~ "(4) 4 = College Degree or More",
+  TRUE ~ "(9) 9 = Missing"
+)))
+```
+```{r}
+#create the medbefore variable
+work2004 <-work2004 %>% mutate(MedBefore = as.factor(case_when(
+  work2004$V2272 == "(1) Yes" ~ "(1) 1 = Yes",
+  work2004$V2272 == "(2) No" ~ "(2) 2 = No ",
+  work2004$V2272 == "(8) Refused" ~ "(-1) -1 = Don't Know",
+  work2004$V2272 == "(7) Don't know" ~ "(-2) -2 = Refusal",
+  TRUE ~ "(9) 9 = Missing"
+)))
+```
+
+```{r}
+#create the medAfter variable
+work2004 <-work2004 %>% mutate(MedAfter = as.factor(case_when(
+  work2004$V2273 == "(1) Yes" ~ "(1) 1 = Yes",
+  work2004$V2273 == "(2) No" ~ "(2) 2 = No ",
+  work2004$V2273 == "(8) Refused" ~ "(-1) -1 = Don't Know",
+  work2004$V2273 == "(7) Don't know" ~ "(-2) -2 = Refusal",
+  TRUE ~ "(9) 9 = Missing"
 )))
 ```
 
