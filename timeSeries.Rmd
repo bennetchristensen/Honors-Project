@@ -1,0 +1,127 @@
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+```
+##Population
+```{r}
+timeSeries <- read.csv("popTimeSeries.csv")
+```
+```{r}
+timeSeries <- timeSeries %>% mutate(start = X2000)
+```
+
+```{r}
+long <- timeSeries %>% 
+  pivot_longer(
+    cols = `X1978`:`X2019`, 
+    names_to = "year",
+    values_to = "Number"
+)
+```
+```{r}
+long <- long %>% mutate(year = as.numeric(sub("X","", year)))
+```
+```{r}
+longShort <- long %>% filter(year > 1999)
+```
+
+
+```{r}
+# Plot 1: 
+ggplot(data = longShort, aes(y= Number/start, x = year)) + geom_line() + 
+  facet_wrap(~State) + 
+  geom_hline(yintercept=1, color="Red") + geom_vline(xintercept=2010, color="Red") + scale_y_continuous(labels = scales::percent)+
+  theme_classic()
+```
+
+
+##Admissions
+```{r}
+Admissions <- read.csv("Admissions.csv")
+```
+```{r}
+Admissions <- Admissions %>% mutate(start = X2000)
+```
+
+```{r}
+Admissions[Admissions=="*"] <- NA
+Admissions <- Admissions %>% mutate(X1994 = as.numeric(X1994), X2006 = as.numeric(X2006))
+```
+
+
+```{r}
+longAdmissions <- Admissions %>% 
+  pivot_longer(
+    cols = `X1978`:`X2019`, 
+    names_to = "year",
+    values_to = "Number"
+)
+```
+```{r}
+longAdmissions <- longAdmissions %>% mutate(year = as.numeric(sub("X","", year)))
+```
+
+```{r}
+longShortAdmissions <- longAdmissions %>% filter(year > 1999)
+```
+
+```{r}
+# Plot 1: 
+ggplot(data = longShortAdmissions, aes(y= Number/start, x = year)) + geom_line() + 
+  facet_wrap(~State) + 
+  geom_hline(yintercept=1, color="Red") + geom_vline(xintercept=2010, color="Red") + scale_y_continuous(labels = scales::percent)+
+  theme_classic()
+```
+
+```{r}
+# Plot 2: 
+ggplot(data = longShortAdmissions, aes(y= Number/start, x = year, color=State)) + geom_line() + 
+  geom_hline(yintercept=1, color="Red") + scale_y_continuous(labels = scales::percent)+ 
+  theme_classic()
+```
+##Releases
+
+```{r}
+Releases <- read.csv("releases.csv")
+```
+```{r}
+Releases <- Releases %>% mutate(start = X2000)
+```
+
+```{r}
+Releases[Releases=="*"] <- NA
+Releases <- Releases %>% mutate(X1994 = as.numeric(X1994))
+```
+
+
+```{r}
+longReleases <- Releases %>% 
+  pivot_longer(
+    cols = `X1978`:`X2019`, 
+    names_to = "year",
+    values_to = "Number"
+)
+```
+```{r}
+longReleases <- longReleases %>% mutate(year = as.numeric(sub("X","", year)))
+```
+
+```{r}
+longShortReleases <- longReleases %>% filter(year > 1999)
+```
+
+```{r}
+# Plot 1: 
+ggplot(data = longShortReleases, aes(y= Number/start, x = year)) + geom_line() + 
+  facet_wrap(~State) + 
+  geom_hline(yintercept=1, color="Red") + geom_vline(xintercept=2010, color="Red") + scale_y_continuous(labels = scales::percent)+
+  theme_classic()
+```
+
+```{r}
+# Plot 2: 
+ggplot(data = longShortReleases, aes(y= Number/start, x = year, color=State)) + geom_line() + 
+  geom_hline(yintercept=1, color="Red") + scale_y_continuous(labels = scales::percent)+ 
+  theme_classic()
+```
