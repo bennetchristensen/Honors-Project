@@ -1,15 +1,23 @@
 ```{r}
 library(tidyverse)
+library(dagitty)
 ```
 
 ```{r}
+load(file="37692-0002-Data.rda")
 small <- da37692.0002[775]
 small <- small %>% filter(V0772 == "CA")
 ```
 
 ```{r}
+load(file="04572-0002-Data.rda")
 tiny <- da04572.0002[1056]
 tiny <- tiny %>% filter(V1056 == "(06) California")
+```
+
+```{r}
+sum(is.na(da04572.0002$V2379))
+sum(is.na(da37692.0002$V1179))
 ```
 
 
@@ -32,7 +40,7 @@ work2016 <- da37692.0002 %>% select("V0772", "RV0002","RV0003", "RV0008", "RV005
 ```{r}
 #Creating Race Categorical for 2004 based on classification in 2016
 work2004 <- work2004 %>% mutate(Race = as.factor(case_when(
-  (work2004$V0029 == "(1) White") + (work2004$V0030 == "(2) Black or African American") + (work2004$V0031 == "(3) American Indian or Alaska Native") + (work2004$V0032 == "(4) Asian") > 0 & work2004$V0018 == "(2) No" ~ "(6) 6 = 2+ Races (NH)",
+  if_else(is.na(work2004$V0029 == "(1) White")==T, 0,1) + if_else(is.na(work2004$V0030 == "(2) Black or African American")==T,0,1) + if_else(is.na(work2004$V0031 == "(3) American Indian or Alaska Native")==T,0,1) + if_else(is.na(work2004$V0032 == "(4) Asian")==T, 0,1) > 1 & work2004$V0018 == "(2) No" ~ "(6) 6 = 2+ Races (NH)",
   work2004$V0029 == "(1) White" & work2004$V0018 == "(2) No" ~ "(1) 1 = White (NH)",
   work2004$V0030 == "(2) Black or African American" & work2004$V0018 == "(2) No" ~ "(2) 2 = Black (NH)",
   work2004$V0018 == "(1) Yes" ~ "(3) 3 = Hispanic",
@@ -110,4 +118,113 @@ work2004 <-work2004 %>% mutate(MedAfter = as.factor(case_when(
   TRUE ~ "(9) 9 = Missing"
 )))
 ```
+
+```{r}
+#Create incomeCat Variable
+work2004 <-work2004 %>% mutate(IncomeCat = as.factor(case_when(
+  work2004$V1857 == "(1) Yes" ~ "(1) 1 = Yes",
+  work2004$V2273 == "(2) No" ~ "(2) 2 = No ",
+  work2004$V2273 == "(8) Refused" ~ "(-1) -1 = Don't Know",
+  work2004$V2273 == "(7) Don't know" ~ "(-2) -2 = Refusal",
+  TRUE ~ "(9) 9 = Missing"
+)))
+```
+
+
+```{r}
+#if I adjust for inflation I'll use this code
+sub("\\([[:digit:]]*?\\).*","",gsub(",","",gsub(" ", "", "(09) 1,200 - 1,300")))
+
+```
+
+```{r}
+testImplications <- function( covariance.matrix, sample.size ){
+	library(ggm)
+	tst <- function(i){ pcor.test( pcor(i,covariance.matrix), length(i)-2, sample.size )$pvalue }
+tos <- function(i){ paste(i,collapse=" ") }
+implications <- list(c("E: California Incarceration","Income"),
+		c("E: California Incarceration","Education"),
+		c("E: California Incarceration","Visitation/Isolation"),
+		c("E: California Incarceration","Marital Status"),
+		c("E: California Incarceration","Veteran Status"),
+		c("E: California Incarceration","Preexisting Condition","Education","Smoking/Drug/Alcohol Use","Race"),
+		c("E: California Incarceration","Age"),
+		c("E: California Incarceration","Physical Activity"),
+		c("Health Care Access","Income"),
+		c("Health Care Access","Education"),
+		c("Health Care Access","Visitation/Isolation"),
+		c("Health Care Access","Marital Status"),
+		c("Health Care Access","Veteran Status"),
+		c("Health Care Access","Preexisting Condition","Education","Smoking/Drug/Alcohol Use","Race"),
+		c("Health Care Access","Age"),
+		c("Health Care Access","Physical Activity"),
+		c("Health Care Access","Prison Infrastructure","E: California Incarceration"),
+		c("Smoking/Drug/Alcohol Use","Income","Education"),
+		c("Smoking/Drug/Alcohol Use","Visitation/Isolation","Marital Status"),
+		c("Smoking/Drug/Alcohol Use","Visitation/Isolation","Age"),
+		c("Smoking/Drug/Alcohol Use","Visitation/Isolation","Education"),
+		c("Smoking/Drug/Alcohol Use","Marital Status","Age"),
+		c("Smoking/Drug/Alcohol Use","Marital Status","Education"),
+		c("Smoking/Drug/Alcohol Use","Veteran Status"),
+		c("Smoking/Drug/Alcohol Use","Age","Education"),
+		c("Smoking/Drug/Alcohol Use","Physical Activity"),
+		c("Smoking/Drug/Alcohol Use","Prison Infrastructure","E: California Incarceration"),
+		c("Income","Race"),
+		c("Income","Visitation/Isolation","Marital Status"),
+		c("Income","Visitation/Isolation","Age"),
+		c("Income","Visitation/Isolation","Education"),
+		c("Income","Marital Status","Age"),
+		c("Income","Marital Status","Education"),
+		c("Income","Veteran Status"),
+		c("Income","Age","Education"),
+		c("Income","Physical Activity"),
+		c("Income","Prison Infrastructure"),
+		c("Race","Education"),
+		c("Race","Visitation/Isolation"),
+		c("Race","Marital Status"),
+		c("Race","Veteran Status"),
+		c("Race","Age"),
+		c("Race","Physical Activity"),
+		c("Race","Prison Infrastructure","E: California Incarceration"),
+		c("Education","Visitation/Isolation","Marital Status"),
+		c("Education","Visitation/Isolation","Age"),
+		c("Education","Marital Status","Age"),
+		c("Education","Veteran Status"),
+		c("Education","Physical Activity"),
+		c("Education","Prison Infrastructure"),
+		c("Visitation/Isolation","Veteran Status"),
+		c("Visitation/Isolation","Preexisting Condition","Age"),
+		c("Visitation/Isolation","Preexisting Condition","Marital Status"),
+		c("Visitation/Isolation","Age","Marital Status"),
+		c("Visitation/Isolation","Physical Activity"),
+		c("Visitation/Isolation","Prison Infrastructure"),
+		c("Marital Status","Veteran Status"),
+		c("Marital Status","Preexisting Condition","Age"),
+		c("Marital Status","Physical Activity"),
+		c("Marital Status","Prison Infrastructure"),
+		c("Veteran Status","Age"),
+		c("Veteran Status","Physical Activity"),
+		c("Veteran Status","Prison Infrastructure"),
+		c("Preexisting Condition","Physical Activity"),
+		c("Preexisting Condition","Prison Infrastructure","E: California Incarceration"),
+		c("Preexisting Condition","Prison Infrastructure","Race","Education","Smoking/Drug/Alcohol Use"),
+		c("Age","Physical Activity"),
+		c("Age","Prison Infrastructure"),
+		c("Physical Activity","Prison Infrastructure"))
+	data.frame( implication=unlist(lapply(implications,tos)),
+		pvalue=unlist( lapply( implications, tst ) ) )
+
+}
+```
+
+```{r}
+workCali2004 <- work2004 %>% filter(V1057=="CA")
+workCali2016 <- work2016 %>% filter(V0772=="CA")
+cbind((workCali2004 %>% count(Race))[1],-(workCali2004 %>% count(Race))[2]/1757 + (workCali2016 %>% count(RV0003))[2]/1375)
+cbind((workCali2004 %>% count(AgeCat))[1],-(workCali2004 %>% count(AgeCat))[2]/1757 + rbind((workCali2016 %>% count(RV0002))[2],0)/1375)
+cbind((workCali2004 %>% count(Veteran))[1],-(workCali2004 %>% count(Veteran))[2]/1757 + (workCali2016 %>% count(RV0008))[2]/1375)
+cbind((workCali2004 %>% count(Marriage))[1],-(workCali2004 %>% count(Marriage))[2]/1757 + rbind((workCali2016 %>% count(RV0051))[2],0)/1375)
+cbind((workCali2004 %>% count(Schooling))[1],-(workCali2004 %>% count(Schooling))[2]/1757 + (workCali2016 %>% count(RV0054))[2]/1375)
+```
+
 
