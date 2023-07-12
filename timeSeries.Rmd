@@ -4,11 +4,27 @@ library(ggplot2)
 library(tidyr)
 ```
 ##Population
+
+```{r}
+allState <- read.csv("allState.csv")
+allState <- allState %>% mutate(start = X2004)
+Statelong <- allState %>% 
+  pivot_longer(
+    cols = `X1978`:`X2019`, 
+    names_to = "year",
+    values_to = "Number"
+)
+Statelong <- Statelong %>% mutate(year = as.numeric(sub("X","", year)))
+StatelongShort <- Statelong %>% filter(year > 2003, year < 2017)
+StatelongShort <- StatelongShort %>% mutate(Percent = Number/start)
+```
+
+
 ```{r}
 timeSeries <- read.csv("popTimeSeries.csv")
 ```
 ```{r}
-timeSeries <- timeSeries %>% mutate(start = X2000)
+timeSeries <- timeSeries %>% mutate(start = X2004)
 ```
 
 ```{r}
@@ -23,7 +39,17 @@ long <- timeSeries %>%
 long <- long %>% mutate(year = as.numeric(sub("X","", year)))
 ```
 ```{r}
-longShort <- long %>% filter(year > 1999)
+longShort <- long %>% filter(year > 2003, year < 2017)
+```
+
+```{r}
+#1.0537717 furthest california ever got before 2011
+longShort <- longShort %>% mutate(Percent = Number/start)
+longShort <- longShort %>% mutate(AbsPercent = abs(Percent - 1))
+```
+```{r}
+Controls <- longShort %>% filter(year < 2011)
+Controls <- Controls  %>% filter(AbsPercent > 0.053)
 ```
 
 
@@ -63,7 +89,7 @@ longAdmissions <- longAdmissions %>% mutate(year = as.numeric(sub("X","", year))
 ```
 
 ```{r}
-longShortAdmissions <- longAdmissions %>% filter(year > 1999)
+longShortAdmissions <- longAdmissions %>% filter(year > 2003, year < 2017)
 ```
 
 ```{r}
@@ -108,7 +134,7 @@ longReleases <- longReleases %>% mutate(year = as.numeric(sub("X","", year)))
 ```
 
 ```{r}
-longShortReleases <- longReleases %>% filter(year > 1999)
+longShortReleases <- longReleases %>% filter(year > 2003, year < 2017)
 ```
 
 ```{r}
@@ -122,6 +148,17 @@ ggplot(data = longShortReleases, aes(y= Number/start, x = year)) + geom_line() +
 ```{r}
 # Plot 2: 
 ggplot(data = longShortReleases, aes(y= Number/start, x = year, color=State)) + geom_line() + 
+  geom_hline(yintercept=1, color="Red") + scale_y_continuous(labels = scales::percent)+ 
+  theme_classic()
+```
+
+##Exploration
+
+```{r}
+CaliPop <- longShort %>% filter(State=="CALIFORNIA")
+CaliRel <- longShortReleases %>% filter(State=="CALIFORNIA")
+CaliAdm <- longShortAdmissions %>% filter(State=="CALIFORNIA")
+ggplot() + geom_line(data = CaliPop, aes(y= Number/start, x = year)) + geom_line(data = CaliRel, aes(y= Number/start, x = year), color="Blue") + geom_line(data = CaliAdm, aes(y= Number/start, x = year), color="Green") +
   geom_hline(yintercept=1, color="Red") + scale_y_continuous(labels = scales::percent)+ 
   theme_classic()
 ```
