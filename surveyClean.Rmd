@@ -227,4 +227,13 @@ cbind((workCali2004 %>% count(Marriage))[1],-(workCali2004 %>% count(Marriage))[
 cbind((workCali2004 %>% count(Schooling))[1],-(workCali2004 %>% count(Schooling))[2]/1757 + (workCali2016 %>% count(RV0054))[2]/1375)
 ```
 
+```{r}
+workCont2004 <- work2004 %>% filter(V1057=="TX" | V1057=="WI" | V1057=="MO" | V1057=="DE")
+workCont2016 <- work2016 %>% filter(V0772=="TX" | V0772=="WI" | V0772=="MO" | V0772=="DE")
+cbind((workCont2004 %>% count(Race))[1],-(workCont2004 %>% count(Race))[2]/2835 + (add_row(count(workCont2016, RV0003)[2]/3442, n=0, .before = 7)))
+cbind((workCont2004 %>% count(AgeCat))[1],-(workCont2004 %>% count(AgeCat))[2]/2835 + rbind((workCont2016 %>% count(RV0002))[2],0)/3442)
+cbind((workCont2004 %>% count(Veteran))[1],-(workCont2004 %>% count(Veteran))[2]/2835 + (rbind((workCont2016 %>% count(RV0008))[2],0)/3442))
+cbind((workCont2004 %>% count(Marriage))[1],-(workCont2004 %>% count(Marriage))[2]/2835 + (workCont2016 %>% count(RV0051))[2]/3442)
+cbind((workCont2004 %>% count(Schooling))[1],-(workCont2004 %>% count(Schooling))[2]/2835 + (workCont2016 %>% count(RV0054))[2]/3442)
+```
 
