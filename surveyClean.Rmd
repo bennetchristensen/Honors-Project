@@ -33,8 +33,8 @@ sum(is.na(da37692.0002$V1179))
 ```
   
 ```{r}
-work2004 <- da04572.0002 %>% select("V1057", "V0014","V0018","V0029","V0030","V0031","V0032","V0033", "V0034", "V0059", "V0058", "V1740", "V1857","V2272", "V2273")
-work2016 <- da37692.0002 %>% select("V0772", "RV0002","RV0003", "RV0008", "RV0051", "RV0054", "V1145", "V1201", "V1202")
+work2004 <- da04572.0002 %>% select("V1057", "V0014","V0018","V0029","V0030","V0031","V0032","V0033", "V0034", "V0059", "V0058", "V1740", "V1857","V2272", "V2273","V2386", "V2387", "V2388", "V2392", "V2394", "V2395")
+work2016 <- da37692.0002 %>% select("V0772", "RV0002","RV0003", "RV0008", "RV0051", "RV0054", "V1145", "V1201", "V1202", "V1179", "V1180", "V1181", "V1182", "V1183", "V1184")
 ```
 
 ```{r}
@@ -217,6 +217,84 @@ implications <- list(c("E: California Incarceration","Income"),
 }
 ```
 
+
+```{r}
+work2004 <- work2004 %>% mutate(NervousBin = case_when(
+  work2004$V2386 == "(1) Yes" ~ 1,
+  work2004$V2386 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(HopelessBin = case_when(
+  work2004$V2392 == "(1) Yes" ~ 1,
+  work2004$V2392 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(RestlessBin = case_when(
+  work2004$V2388 == "(1) Yes" ~ 1,
+  work2004$V2388 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(DepressBin = case_when(
+  work2004$V2395 == "(1) Yes" ~ 1,
+  work2004$V2395 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(EffortBin = case_when(
+  work2004$V2387 == "(1) Yes" ~ 1,
+  work2004$V2387 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(WorthlessBin = case_when(
+  work2004$V2394 == "(1) Yes" ~ 1,
+  work2004$V2394 == "(2) No" ~ 0
+))
+work2004 <-work2004 %>% mutate(MentalHealthScore = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)
+```
+
+
+```{r}
+work2016 <-work2016 %>% mutate(NervousBin = case_when(
+  work2016$V1179 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1179 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1179 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1179 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1179 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(HopelessBin = case_when(
+  work2016$V1180 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1180 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1180 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1180 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1180 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(RestlessBin = case_when(
+  work2016$V1181 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1181 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1181 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1181 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1181 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(DepressBin = case_when(
+  work2016$V1182 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1182 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1182 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1182 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1182 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(EffortBin = case_when(
+  work2016$V1183 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1183 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1183 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1183 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1183 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(WorthlessBin = case_when(
+  work2016$V1184 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1184 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1184 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1184 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1184 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(MentalHealthScore = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)
+```
+
 ```{r}
 workCali2004 <- work2004 %>% filter(V1057=="CA")
 workCali2016 <- work2016 %>% filter(V0772=="CA")
@@ -236,4 +314,21 @@ cbind((workCont2004 %>% count(Veteran))[1],-(workCont2004 %>% count(Veteran))[2]
 cbind((workCont2004 %>% count(Marriage))[1],-(workCont2004 %>% count(Marriage))[2]/2835 + (workCont2016 %>% count(RV0051))[2]/3442)
 cbind((workCont2004 %>% count(Schooling))[1],-(workCont2004 %>% count(Schooling))[2]/2835 + (workCont2016 %>% count(RV0054))[2]/3442)
 ```
-
+```{r}
+MentalChart<-cbind((workCont2016 %>% count(MentalHealthScore))[1],
+(workCont2004 %>% count(MentalHealthScore))[2],
+(workCont2016 %>% count(MentalHealthScore))[2],
+(workCali2004 %>% count(MentalHealthScore))[2],
+(workCali2016 %>% count(MentalHealthScore))[2]
+)
+colnames(MentalChart)[2:5] <- c("2004 Control", "2016 Control","2004 California", "2016 California")
+MentalChart
+MentalChartPerc<-cbind((workCont2016 %>% count(MentalHealthScore))[1],
+(workCont2004 %>% count(MentalHealthScore))[2]/2835,
+(workCont2016 %>% count(MentalHealthScore))[2]/3442,
+(workCali2004 %>% count(MentalHealthScore))[2]/1757,
+(workCali2016 %>% count(MentalHealthScore))[2]/1375
+)
+colnames(MentalChartPerc)[2:5] <- c("2004 Control", "2016 Control","2004 California", "2016 California")
+MentalChartPerc
+```
