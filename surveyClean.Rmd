@@ -217,6 +217,82 @@ implications <- list(c("E: California Incarceration","Income"),
 }
 ```
 
+```{r}
+work2004 <- work2004 %>% mutate(NervousBin = case_when(
+  work2004$V2386 == "(1) Yes" ~ 1,
+  work2004$V2386 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(HopelessBin = case_when(
+  work2004$V2392 == "(1) Yes" ~ 1,
+  work2004$V2392 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(RestlessBin = case_when(
+  work2004$V2388 == "(1) Yes" ~ 1,
+  work2004$V2388 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(DepressBin = case_when(
+  work2004$V2395 == "(1) Yes" ~ 1,
+  work2004$V2395 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(EffortBin = case_when(
+  work2004$V2387 == "(1) Yes" ~ 1,
+  work2004$V2387 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(WorthlessBin = case_when(
+  work2004$V2394 == "(1) Yes" ~ 1,
+  work2004$V2394 == "(2) No" ~ 0
+))
+work2004 <-work2004 %>% mutate(MentalHealthScoreLeniant = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)
+```
+
+```{r}
+work2016 <-work2016 %>% mutate(NervousBin = case_when(
+  work2016$V1179 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1179 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1179 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1179 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1179 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(HopelessBin = case_when(
+  work2016$V1180 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1180 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1180 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1180 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1180 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(RestlessBin = case_when(
+  work2016$V1181 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1181 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1181 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1181 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1181 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(DepressBin = case_when(
+  work2016$V1182 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1182 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1182 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1182 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1182 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(EffortBin = case_when(
+  work2016$V1183 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1183 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1183 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1183 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1183 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(WorthlessBin = case_when(
+  work2016$V1184 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1184 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1184 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1184 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1184 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(MentalHealthScoreLeniant = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)
+```
+
 
 ```{r}
 work2004 <- work2004 %>% mutate(NervousBin = case_when(
@@ -243,7 +319,7 @@ work2004 <- work2004 %>% mutate(WorthlessBin = case_when(
   work2004$V2394 == "(1) Yes" ~ 1,
   work2004$V2394 == "(2) No" ~ 0
 ))
-work2004 <-work2004 %>% mutate(MentalHealthScore = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+work2004 <-work2004 %>% mutate(MentalHealthScoreStrict = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
 )
 ```
 
@@ -291,13 +367,19 @@ work2016 <-work2016 %>% mutate(WorthlessBin = case_when(
   work2016$V1184 == "(4) 4 = A Little of the Time" ~ 0,
   work2016$V1184 == "(5) 5 = None of the Time" ~ 0
 ))
-work2016 <-work2016 %>% mutate(MentalHealthScore = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+work2016 <-work2016 %>% mutate(MentalHealthScoreStrict = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
 )
 ```
 
 ```{r}
 workCali2004 <- work2004 %>% filter(V1057=="CA")
 workCali2016 <- work2016 %>% filter(V0772=="CA")
+workCont2004 <- work2004 %>% filter(V1057=="TX" | V1057=="WI" | V1057=="MO" | V1057=="DE")
+workCont2016 <- work2016 %>% filter(V0772=="TX" | V0772=="WI" | V0772=="MO" | V0772=="DE")
+```
+
+
+```{r}
 cbind((workCali2004 %>% count(Race))[1],-(workCali2004 %>% count(Race))[2]/1757 + (workCali2016 %>% count(RV0003))[2]/1375)
 cbind((workCali2004 %>% count(AgeCat))[1],-(workCali2004 %>% count(AgeCat))[2]/1757 + rbind((workCali2016 %>% count(RV0002))[2],0)/1375)
 cbind((workCali2004 %>% count(Veteran))[1],-(workCali2004 %>% count(Veteran))[2]/1757 + (workCali2016 %>% count(RV0008))[2]/1375)
@@ -306,8 +388,6 @@ cbind((workCali2004 %>% count(Schooling))[1],-(workCali2004 %>% count(Schooling)
 ```
 
 ```{r}
-workCont2004 <- work2004 %>% filter(V1057=="TX" | V1057=="WI" | V1057=="MO" | V1057=="DE")
-workCont2016 <- work2016 %>% filter(V0772=="TX" | V0772=="WI" | V0772=="MO" | V0772=="DE")
 cbind((workCont2004 %>% count(Race))[1],-(workCont2004 %>% count(Race))[2]/2835 + (add_row(count(workCont2016, RV0003)[2]/3442, n=0, .before = 7)))
 cbind((workCont2004 %>% count(AgeCat))[1],-(workCont2004 %>% count(AgeCat))[2]/2835 + rbind((workCont2016 %>% count(RV0002))[2],0)/3442)
 cbind((workCont2004 %>% count(Veteran))[1],-(workCont2004 %>% count(Veteran))[2]/2835 + (rbind((workCont2016 %>% count(RV0008))[2],0)/3442))
@@ -315,20 +395,72 @@ cbind((workCont2004 %>% count(Marriage))[1],-(workCont2004 %>% count(Marriage))[
 cbind((workCont2004 %>% count(Schooling))[1],-(workCont2004 %>% count(Schooling))[2]/2835 + (workCont2016 %>% count(RV0054))[2]/3442)
 ```
 ```{r}
-MentalChart<-cbind((workCont2016 %>% count(MentalHealthScore))[1],
-(workCont2004 %>% count(MentalHealthScore))[2],
-(workCont2016 %>% count(MentalHealthScore))[2],
-(workCali2004 %>% count(MentalHealthScore))[2],
-(workCali2016 %>% count(MentalHealthScore))[2]
+MentalChart<-cbind((workCont2016 %>% count(MentalHealthScoreLeniant))[1],
+(workCont2004 %>% count(MentalHealthScoreLeniant))[2],
+(workCont2016 %>% count(MentalHealthScoreLeniant))[2],
+(workCali2004 %>% count(MentalHealthScoreLeniant))[2],
+(workCali2016 %>% count(MentalHealthScoreLeniant))[2]
 )
 colnames(MentalChart)[2:5] <- c("2004 Control", "2016 Control","2004 California", "2016 California")
 MentalChart
-MentalChartPerc<-cbind((workCont2016 %>% count(MentalHealthScore))[1],
-(workCont2004 %>% count(MentalHealthScore))[2]/2835,
-(workCont2016 %>% count(MentalHealthScore))[2]/3442,
-(workCali2004 %>% count(MentalHealthScore))[2]/1757,
-(workCali2016 %>% count(MentalHealthScore))[2]/1375
+MentalChartPerc<-cbind((workCont2016 %>% count(MentalHealthScoreLeniant))[1],
+(workCont2004 %>% count(MentalHealthScoreLeniant))[2]/2835,
+(workCont2016 %>% count(MentalHealthScoreLeniant))[2]/3442,
+(workCali2004 %>% count(MentalHealthScoreLeniant))[2]/1757,
+(workCali2016 %>% count(MentalHealthScoreLeniant))[2]/1375
 )
 colnames(MentalChartPerc)[2:5] <- c("2004 Control", "2016 Control","2004 California", "2016 California")
 MentalChartPerc
 ```
+
+```{r}
+workCont2004 <- workCont2004 %>% mutate(Year = "2004", treatment = 0)
+workCont2016 <- workCont2016 %>% mutate(Year = "2016", treatment = 0)
+workCali2004 <- workCali2004 %>% mutate(Year = "2004", treatment = 1)
+workCali2016 <- workCali2016 %>% mutate(Year = "2016", treatment = 1)
+```
+
+```{r}
+mergeCali2004 <- workCali2004 %>% select("V1057","Race","AgeCat","Marriage", "Schooling", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
+mergeCont2004 <- workCont2004 %>% select("V1057","Race","AgeCat","Marriage", "Schooling", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
+mergeCont2016 <- workCont2016 %>% select("V0772","RV0003","RV0002","RV0051", "RV0054", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
+colnames(mergeCont2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
+mergeCali2016 <- workCali2016 %>% select("V0772","RV0003","RV0002","RV0051", "RV0054", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
+colnames(mergeCali2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
+```
+
+```{r}
+MergedSurvey <- rbind(mergeCali2004, mergeCont2004, mergeCali2016, mergeCont2016)
+```
+
+```{r}
+
+```
+
+
+
+
+```{r}
+
+lm(MentalHealthScoreStrict~Year + treatment +Year*treatment, MergedSurvey) %>% summary()
+lm(MentalHealthScoreStrict~Year + treatment +Year*treatment + Race + Schooling, MergedSurvey) %>% summary()
+lm(MentalHealthScoreStrict~Year + treatment +Year*treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary()
+```
+
+```{r}
+lm(MentalHealthScoreLeniant~Year + treatment +Year*treatment, MergedSurvey) %>% summary()
+lm(MentalHealthScoreLeniant~Year + treatment +Year*treatment + Race + Schooling, MergedSurvey) %>% summary()
+lm(MentalHealthScoreLeniant~Year + treatment +Year*treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary()
+```
+
+
+```{r}
+MergedSurvey %>% ggplot(aes(x=MentalHealthScoreStrict, color=Year)) +
+  geom_density(na.rm=T) +
+  facet_wrap(~treatment)
+MergedSurvey %>% ggplot(aes(x=MentalHealthScoreLeniant, color=Year)) +
+  geom_density(na.rm=T) +
+  facet_wrap(~treatment) + ggtitle("Box Plots of Mental Health Scores (0==Control, 1==Treatment)")
+```
+
+
