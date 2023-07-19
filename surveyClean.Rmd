@@ -1,6 +1,9 @@
 ```{r}
 library(tidyverse)
 library(dagitty)
+library(did)
+library(MASS)
+library(broom)
 ```
 
 ```{r}
@@ -33,8 +36,8 @@ sum(is.na(da37692.0002$V1179))
 ```
   
 ```{r}
-work2004 <- da04572.0002 %>% select("V1057", "V0014","V0018","V0029","V0030","V0031","V0032","V0033", "V0034", "V0059", "V0058", "V1740", "V1857","V2272", "V2273","V2386", "V2387", "V2388", "V2392", "V2394", "V2395")
-work2016 <- da37692.0002 %>% select("V0772", "RV0002","RV0003", "RV0008", "RV0051", "RV0054", "V1145", "V1201", "V1202", "V1179", "V1180", "V1181", "V1182", "V1183", "V1184")
+work2004 <- da04572.0002 %>% dplyr::select("V1057", "V0014","V0018","V0029","V0030","V0031","V0032","V0033", "V0034", "V0059", "V0058", "V1740", "V1857","V2272", "V2273","V2386", "V2387", "V2388", "V2392", "V2394", "V2395")
+work2016 <- da37692.0002 %>% dplyr::select("V0772", "RV0002","RV0003", "RV0008", "RV0051", "RV0054", "V1145", "V1201", "V1202", "V1179", "V1180", "V1181", "V1182", "V1183", "V1184")
 ```
 
 ```{r}
@@ -421,17 +424,27 @@ workCali2016 <- workCali2016 %>% mutate(Year = "2016", Treatment = 1)
 ```
 
 ```{r}
-mergeCali2004 <- workCali2004 %>% select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
-mergeCont2004 <- workCont2004 %>% select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
-mergeCont2016 <- workCont2016 %>% select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCali2004 <- workCali2004 %>% dplyr::dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCont2004 <- workCont2004 %>% dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCont2016 <- workCont2016 %>% dplyr::select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 colnames(mergeCont2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
-mergeCali2016 <- workCali2016 %>% select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCali2016 <- workCali2016 %>% dplyr::select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 colnames(mergeCali2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 ```
 
 ```{r}
 MergedSurvey <- rbind(mergeCali2004, mergeCont2004, mergeCali2016, mergeCont2016)
 ```
+```{r}
+MergedSurvey <- MergedSurvey %>% filter(Race != "(9) 9 = Uncategorized - Missing" & Schooling != "(9) 9 = Missing" & Marriage != "(98) 98 = DK/REF" & AgeCat != "(99) 99 = Blank" & Veteran != "(98) 98 = DK/REF" & is.na(MentalHealthScoreLeniant)==F)
+```
+
+```{r}
+MergedSurvey <- MergedSurvey %>% mutate(Race = droplevels(Race), Schooling = droplevels(Schooling), Marriage = droplevels(Marriage), AgeCat= droplevels(AgeCat), Veteran =droplevels(Veteran), factorLeniant = as.factor(MentalHealthScoreLeniant), factorStrict = as.factor(MentalHealthScoreStrict))
+MergedSurvey$factorLeniant <- factor(MergedSurvey$factorLeniant, levels = c(0,1,2,3,4,5,6),ordered=T)
+```
+
+
 
 ```{r}
 lm(MentalHealthScoreLeniant ~ Race*Year, MergedSurvey) %>% summary
@@ -459,7 +472,7 @@ lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling +
 ```{r}
 lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment, MergedSurvey) %>% summary()
 lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %>% summary()
-lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary()
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage + Veteran, MergedSurvey) %>% summary()
 lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %>% summary()
 ```
 
@@ -475,5 +488,15 @@ MergedSurvey %>% ggplot(aes(x=MentalHealthScoreLeniant, color=Year)) +
 
 ```{r}
 lm(MentalHealthScoreLeniant ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey) %>% summary()
+```
+
+
+```{r}
+leniantOLog <- polr(factorLeniant ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, Hess =T)
+strictOLog <-polr(factorStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, Hess =T)
+```
+```{r}
+summary(leniantOLog)
+summary(strictOLog)
 ```
 
