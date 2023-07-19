@@ -414,19 +414,19 @@ MentalChartPerc
 ```
 
 ```{r}
-workCont2004 <- workCont2004 %>% mutate(Year = "2004", treatment = 0)
-workCont2016 <- workCont2016 %>% mutate(Year = "2016", treatment = 0)
-workCali2004 <- workCali2004 %>% mutate(Year = "2004", treatment = 1)
-workCali2016 <- workCali2016 %>% mutate(Year = "2016", treatment = 1)
+workCont2004 <- workCont2004 %>% mutate(Year = "2004", Treatment = 0)
+workCont2016 <- workCont2016 %>% mutate(Year = "2016", Treatment = 0)
+workCali2004 <- workCali2004 %>% mutate(Year = "2004", Treatment = 1)
+workCali2016 <- workCali2016 %>% mutate(Year = "2016", Treatment = 1)
 ```
 
 ```{r}
-mergeCali2004 <- workCali2004 %>% select("V1057","Race","AgeCat","Marriage", "Schooling", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
-mergeCont2004 <- workCont2004 %>% select("V1057","Race","AgeCat","Marriage", "Schooling", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
-mergeCont2016 <- workCont2016 %>% select("V0772","RV0003","RV0002","RV0051", "RV0054", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
-colnames(mergeCont2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
-mergeCali2016 <- workCali2016 %>% select("V0772","RV0003","RV0002","RV0051", "RV0054", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
-colnames(mergeCali2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "treatment")
+mergeCali2004 <- workCali2004 %>% select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCont2004 <- workCont2004 %>% select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCont2016 <- workCont2016 %>% select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+colnames(mergeCont2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCali2016 <- workCali2016 %>% select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+colnames(mergeCali2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 ```
 
 ```{r}
@@ -434,33 +434,46 @@ MergedSurvey <- rbind(mergeCali2004, mergeCont2004, mergeCali2016, mergeCont2016
 ```
 
 ```{r}
-
+lm(MentalHealthScoreLeniant ~ Race*Year, MergedSurvey) %>% summary
+lm(MentalHealthScoreLeniant ~ Race+Year, MergedSurvey) %>% summary
 ```
 
 
+```{r}
+lm(Treatment ~ Race*Year, MergedSurvey) %>% summary()
+lm(Treatment ~ Schooling*Year, MergedSurvey) %>% summary()
+lm(Treatment ~ Veteran*Year, MergedSurvey) %>% summary()
+lm(Treatment ~ AgeCat*Year, MergedSurvey) %>% summary()
+lm(Treatment ~ Marriage*Year, MergedSurvey) %>% summary()
+```
 
 
 ```{r}
 
-lm(MentalHealthScoreStrict~Year + treatment +Year*treatment, MergedSurvey) %>% summary()
-lm(MentalHealthScoreStrict~Year + treatment +Year*treatment + Race + Schooling, MergedSurvey) %>% summary()
-lm(MentalHealthScoreStrict~Year + treatment +Year*treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary()
+lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment, MergedSurvey) %>% summary()
+lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %>% summary()
+lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary()
+lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %>% summary()
 ```
 
 ```{r}
-lm(MentalHealthScoreLeniant~Year + treatment +Year*treatment, MergedSurvey) %>% summary()
-lm(MentalHealthScoreLeniant~Year + treatment +Year*treatment + Race + Schooling, MergedSurvey) %>% summary()
-lm(MentalHealthScoreLeniant~Year + treatment +Year*treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary()
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment, MergedSurvey) %>% summary()
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %>% summary()
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary()
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %>% summary()
 ```
 
 
 ```{r}
 MergedSurvey %>% ggplot(aes(x=MentalHealthScoreStrict, color=Year)) +
-  geom_density(na.rm=T) +
-  facet_wrap(~treatment)
+  geom_density(na.rm=T, n=7) +
+  facet_wrap(~Treatment)
 MergedSurvey %>% ggplot(aes(x=MentalHealthScoreLeniant, color=Year)) +
-  geom_density(na.rm=T) +
-  facet_wrap(~treatment) + ggtitle("Box Plots of Mental Health Scores (0==Control, 1==Treatment)")
+  geom_density(na.rm=T, n = 7) +
+  facet_wrap(~Treatment) + ggtitle("Box Plots of Mental Health Scores (0==Control, 1==Treatment)")
 ```
 
+```{r}
+lm(MentalHealthScoreLeniant ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey) %>% summary()
+```
 
