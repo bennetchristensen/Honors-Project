@@ -60,7 +60,18 @@ ggplot(data = longShort, aes(y= Number/start, x = year)) + geom_line() +
   geom_hline(yintercept=1, color="Red") + geom_vline(xintercept=2010, color="Red") + scale_y_continuous(labels = scales::percent)+
   theme_classic()
 ```
-
+```{r}
+# Plot 1: 
+ggplot(data = longShort %>% filter(State=="CALIFORNIA"), aes(y= Number/start, x = year)) + geom_line() + 
+  geom_hline(yintercept=1, color="Red") + geom_vline(xintercept=2010, color="Red") + scale_y_continuous(labels = scales::percent)+ labs(title = "Change in California Prison Population", y="Percent Change") +
+  theme_classic()
+```
+```{r}
+# Plot 1: 
+ggplot(data = longShort %>% filter(State=="TEXAS" | State == "MISSOURI" | State=="DELAWARE" | State == "WISCONSIN"), aes(y= Number/start, x = year)) + geom_line() + facet_wrap(~State) +
+  geom_hline(yintercept=1, color="Red") + geom_vline(xintercept=2010, color="Red") + scale_y_continuous(labels = scales::percent)+ labs(title = "Change in Control State Prison Populations", y="Percent Change") +
+  theme_classic()
+```
 
 ##Admissions
 ```{r}
@@ -162,3 +173,8 @@ ggplot() + geom_line(data = CaliPop, aes(y= Number/start, x = year)) + geom_line
   geom_hline(yintercept=1, color="Red") + scale_y_continuous(labels = scales::percent)+ 
   theme_classic()
 ```
+
+```{r}
+
+```
+

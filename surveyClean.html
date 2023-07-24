@@ -369,7 +369,18 @@ display: none;
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()
 ## ℹ Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(dagitty)</code></pre>
+<pre class="r"><code>library(dagitty)
+library(did)</code></pre>
+<pre><code>## Warning: package &#39;did&#39; was built under R version 4.2.3</code></pre>
+<pre class="r"><code>library(MASS)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;MASS&#39;
+## 
+## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     select</code></pre>
+<pre class="r"><code>library(broom)</code></pre>
+<pre><code>## Warning: package &#39;broom&#39; was built under R version 4.2.3</code></pre>
 <pre class="r"><code>load(file=&quot;37692-0002-Data.rda&quot;)
 small &lt;- da37692.0002[775]
 small &lt;- small %&gt;% filter(V0772 == &quot;CA&quot;)</code></pre>
@@ -390,8 +401,8 @@ tiny &lt;- tiny %&gt;% filter(V1056 == &quot;(06) California&quot;)</code></pre>
 <pre><code>## [1] 0.1186978</code></pre>
 <pre class="r"><code>1757/14499</code></pre>
 <pre><code>## [1] 0.1211808</code></pre>
-<pre class="r"><code>work2004 &lt;- da04572.0002 %&gt;% select(&quot;V1057&quot;, &quot;V0014&quot;,&quot;V0018&quot;,&quot;V0029&quot;,&quot;V0030&quot;,&quot;V0031&quot;,&quot;V0032&quot;,&quot;V0033&quot;, &quot;V0034&quot;, &quot;V0059&quot;, &quot;V0058&quot;, &quot;V1740&quot;, &quot;V1857&quot;,&quot;V2272&quot;, &quot;V2273&quot;)
-work2016 &lt;- da37692.0002 %&gt;% select(&quot;V0772&quot;, &quot;RV0002&quot;,&quot;RV0003&quot;, &quot;RV0008&quot;, &quot;RV0051&quot;, &quot;RV0054&quot;, &quot;V1145&quot;, &quot;V1201&quot;, &quot;V1202&quot;)</code></pre>
+<pre class="r"><code>work2004 &lt;- da04572.0002 %&gt;% dplyr::select(&quot;V1057&quot;, &quot;V0014&quot;,&quot;V0018&quot;,&quot;V0029&quot;,&quot;V0030&quot;,&quot;V0031&quot;,&quot;V0032&quot;,&quot;V0033&quot;, &quot;V0034&quot;, &quot;V0059&quot;, &quot;V0058&quot;, &quot;V1740&quot;, &quot;V1857&quot;,&quot;V2272&quot;, &quot;V2273&quot;,&quot;V2386&quot;, &quot;V2387&quot;, &quot;V2388&quot;, &quot;V2392&quot;, &quot;V2394&quot;, &quot;V2395&quot;)
+work2016 &lt;- da37692.0002 %&gt;% dplyr::select(&quot;V0772&quot;, &quot;RV0002&quot;,&quot;RV0003&quot;, &quot;RV0008&quot;, &quot;RV0051&quot;, &quot;RV0054&quot;, &quot;V1145&quot;, &quot;V1201&quot;, &quot;V1202&quot;, &quot;V1179&quot;, &quot;V1180&quot;, &quot;V1181&quot;, &quot;V1182&quot;, &quot;V1183&quot;, &quot;V1184&quot;)</code></pre>
 <pre class="r"><code>#Creating Race Categorical for 2004 based on classification in 2016
 work2004 &lt;- work2004 %&gt;% mutate(Race = as.factor(case_when(
   if_else(is.na(work2004$V0029 == &quot;(1) White&quot;)==T, 0,1) + if_else(is.na(work2004$V0030 == &quot;(2) Black or African American&quot;)==T,0,1) + if_else(is.na(work2004$V0031 == &quot;(3) American Indian or Alaska Native&quot;)==T,0,1) + if_else(is.na(work2004$V0032 == &quot;(4) Asian&quot;)==T, 0,1) &gt; 1 &amp; work2004$V0018 == &quot;(2) No&quot; ~ &quot;(6) 6 = 2+ Races (NH)&quot;,
@@ -543,9 +554,151 @@ implications &lt;- list(c(&quot;E: California Incarceration&quot;,&quot;Income&q
         pvalue=unlist( lapply( implications, tst ) ) )
 
 }</code></pre>
+<pre class="r"><code>work2004 &lt;- work2004 %&gt;% mutate(NervousBin = case_when(
+  work2004$V2386 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2386 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(HopelessBin = case_when(
+  work2004$V2392 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2392 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(RestlessBin = case_when(
+  work2004$V2388 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2388 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(DepressBin = case_when(
+  work2004$V2395 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2395 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(EffortBin = case_when(
+  work2004$V2387 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2387 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(WorthlessBin = case_when(
+  work2004$V2394 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2394 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;-work2004 %&gt;% mutate(MentalHealthScoreLeniant = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)</code></pre>
+<pre class="r"><code>work2016 &lt;-work2016 %&gt;% mutate(NervousBin = case_when(
+  work2016$V1179 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1179 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1179 == &quot;(3) 3 = Some of the Time&quot; ~ 1,
+  work2016$V1179 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1179 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(HopelessBin = case_when(
+  work2016$V1180 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1180 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1180 == &quot;(3) 3 = Some of the Time&quot; ~ 1,
+  work2016$V1180 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1180 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(RestlessBin = case_when(
+  work2016$V1181 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1181 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1181 == &quot;(3) 3 = Some of the Time&quot; ~ 1,
+  work2016$V1181 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1181 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(DepressBin = case_when(
+  work2016$V1182 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1182 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1182 == &quot;(3) 3 = Some of the Time&quot; ~ 1,
+  work2016$V1182 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1182 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(EffortBin = case_when(
+  work2016$V1183 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1183 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1183 == &quot;(3) 3 = Some of the Time&quot; ~ 1,
+  work2016$V1183 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1183 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(WorthlessBin = case_when(
+  work2016$V1184 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1184 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1184 == &quot;(3) 3 = Some of the Time&quot; ~ 1,
+  work2016$V1184 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1184 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(MentalHealthScoreLeniant = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)</code></pre>
+<pre class="r"><code>work2004 &lt;- work2004 %&gt;% mutate(NervousBin = case_when(
+  work2004$V2386 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2386 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(HopelessBin = case_when(
+  work2004$V2392 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2392 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(RestlessBin = case_when(
+  work2004$V2388 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2388 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(DepressBin = case_when(
+  work2004$V2395 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2395 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(EffortBin = case_when(
+  work2004$V2387 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2387 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;- work2004 %&gt;% mutate(WorthlessBin = case_when(
+  work2004$V2394 == &quot;(1) Yes&quot; ~ 1,
+  work2004$V2394 == &quot;(2) No&quot; ~ 0
+))
+work2004 &lt;-work2004 %&gt;% mutate(MentalHealthScoreStrict = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)</code></pre>
+<pre class="r"><code>work2016 &lt;-work2016 %&gt;% mutate(NervousBin = case_when(
+  work2016$V1179 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1179 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1179 == &quot;(3) 3 = Some of the Time&quot; ~ 0,
+  work2016$V1179 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1179 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(HopelessBin = case_when(
+  work2016$V1180 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1180 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1180 == &quot;(3) 3 = Some of the Time&quot; ~ 0,
+  work2016$V1180 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1180 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(RestlessBin = case_when(
+  work2016$V1181 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1181 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1181 == &quot;(3) 3 = Some of the Time&quot; ~ 0,
+  work2016$V1181 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1181 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(DepressBin = case_when(
+  work2016$V1182 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1182 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1182 == &quot;(3) 3 = Some of the Time&quot; ~ 0,
+  work2016$V1182 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1182 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(EffortBin = case_when(
+  work2016$V1183 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1183 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1183 == &quot;(3) 3 = Some of the Time&quot; ~ 0,
+  work2016$V1183 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1183 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(WorthlessBin = case_when(
+  work2016$V1184 == &quot;(1) 1 = All of the Time&quot; ~ 1,
+  work2016$V1184 == &quot;(2) 2 = Most of the Time&quot;~ 1,
+  work2016$V1184 == &quot;(3) 3 = Some of the Time&quot; ~ 0,
+  work2016$V1184 == &quot;(4) 4 = A Little of the Time&quot; ~ 0,
+  work2016$V1184 == &quot;(5) 5 = None of the Time&quot; ~ 0
+))
+work2016 &lt;-work2016 %&gt;% mutate(MentalHealthScoreStrict = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)</code></pre>
 <pre class="r"><code>workCali2004 &lt;- work2004 %&gt;% filter(V1057==&quot;CA&quot;)
 workCali2016 &lt;- work2016 %&gt;% filter(V0772==&quot;CA&quot;)
-cbind((workCali2004 %&gt;% count(Race))[1],-(workCali2004 %&gt;% count(Race))[2]/1757 + (workCali2016 %&gt;% count(RV0003))[2]/1375)</code></pre>
+workCont2004 &lt;- work2004 %&gt;% filter(V1057==&quot;TX&quot; | V1057==&quot;WI&quot; | V1057==&quot;MO&quot; | V1057==&quot;DE&quot;)
+workCont2016 &lt;- work2016 %&gt;% filter(V0772==&quot;TX&quot; | V0772==&quot;WI&quot; | V0772==&quot;MO&quot; | V0772==&quot;DE&quot;)</code></pre>
+<pre class="r"><code>cbind((workCali2004 %&gt;% count(Race))[1],-(workCali2004 %&gt;% count(Race))[2]/1757 + (workCali2016 %&gt;% count(RV0003))[2]/1375)</code></pre>
 <pre><code>##                                                        Race             n
 ## 1                                        (1) 1 = White (NH) -0.0996272572
 ## 2                                        (2) 2 = Black (NH) -0.0250348218
@@ -583,9 +736,7 @@ cbind((workCali2004 %&gt;% count(Race))[1],-(workCali2004 %&gt;% count(Race))[2]
 ## 3           (3) 3 = Some College -0.0137196668
 ## 4 (4) 4 = College Degree or More  0.0001593625
 ## 5                (9) 9 = Missing -0.0195722047</code></pre>
-<pre class="r"><code>workCont2004 &lt;- work2004 %&gt;% filter(V1057==&quot;TX&quot; | V1057==&quot;WI&quot; | V1057==&quot;MO&quot; | V1057==&quot;DE&quot;)
-workCont2016 &lt;- work2016 %&gt;% filter(V0772==&quot;TX&quot; | V0772==&quot;WI&quot; | V0772==&quot;MO&quot; | V0772==&quot;DE&quot;)
-cbind((workCont2004 %&gt;% count(Race))[1],-(workCont2004 %&gt;% count(Race))[2]/2835 + (add_row(count(workCont2016, RV0003)[2]/3442, n=0, .before = 7)))</code></pre>
+<pre class="r"><code>cbind((workCont2004 %&gt;% count(Race))[1],-(workCont2004 %&gt;% count(Race))[2]/2835 + (add_row(count(workCont2016, RV0003)[2]/3442, n=0, .before = 7)))</code></pre>
 <pre><code>##                                                        Race            n
 ## 1                                        (1) 1 = White (NH)  0.010301422
 ## 2                                        (2) 2 = Black (NH) -0.129020800
@@ -624,6 +775,1560 @@ cbind((workCont2004 %&gt;% count(Race))[1],-(workCont2004 %&gt;% count(Race))[2]
 ## 3           (3) 3 = Some College  0.02976982
 ## 4 (4) 4 = College Degree or More  0.00544165
 ## 5                (9) 9 = Missing -0.01056008</code></pre>
+<pre class="r"><code>MentalChart&lt;-cbind((workCont2016 %&gt;% count(MentalHealthScoreLeniant))[1],
+(workCont2004 %&gt;% count(MentalHealthScoreLeniant))[2],
+(workCont2016 %&gt;% count(MentalHealthScoreLeniant))[2],
+(workCali2004 %&gt;% count(MentalHealthScoreLeniant))[2],
+(workCali2016 %&gt;% count(MentalHealthScoreLeniant))[2]
+)
+colnames(MentalChart)[2:5] &lt;- c(&quot;2004 Control&quot;, &quot;2016 Control&quot;,&quot;2004 California&quot;, &quot;2016 California&quot;)
+MentalChart</code></pre>
+<pre><code>##   MentalHealthScoreLeniant 2004 Control 2016 Control 2004 California
+## 1                        0          855          794             627
+## 2                        1          460          697             275
+## 3                        2          515          603             266
+## 4                        3          338          499             204
+## 5                        4          290          321             143
+## 6                        5          251          253             142
+## 7                        6           82          244              54
+## 8                       NA           44           31              46
+##   2016 California
+## 1             514
+## 2             282
+## 3             197
+## 4             127
+## 5              85
+## 6              88
+## 7              74
+## 8               8</code></pre>
+<pre class="r"><code>MentalChartPerc&lt;-cbind((workCont2016 %&gt;% count(MentalHealthScoreLeniant))[1],
+(workCont2004 %&gt;% count(MentalHealthScoreLeniant))[2]/2835,
+(workCont2016 %&gt;% count(MentalHealthScoreLeniant))[2]/3442,
+(workCali2004 %&gt;% count(MentalHealthScoreLeniant))[2]/1757,
+(workCali2016 %&gt;% count(MentalHealthScoreLeniant))[2]/1375
+)
+colnames(MentalChartPerc)[2:5] &lt;- c(&quot;2004 Control&quot;, &quot;2016 Control&quot;,&quot;2004 California&quot;, &quot;2016 California&quot;)
+MentalChartPerc</code></pre>
+<pre><code>##   MentalHealthScoreLeniant 2004 Control 2016 Control 2004 California
+## 1                        0   0.30158730  0.230679837      0.35685828
+## 2                        1   0.16225750  0.202498547      0.15651679
+## 3                        2   0.18165785  0.175188844      0.15139442
+## 4                        3   0.11922399  0.144973852      0.11610700
+## 5                        4   0.10229277  0.093259733      0.08138873
+## 6                        5   0.08853616  0.073503777      0.08081958
+## 7                        6   0.02892416  0.070889018      0.03073421
+## 8                       NA   0.01552028  0.009006392      0.02618099
+##   2016 California
+## 1     0.373818182
+## 2     0.205090909
+## 3     0.143272727
+## 4     0.092363636
+## 5     0.061818182
+## 6     0.064000000
+## 7     0.053818182
+## 8     0.005818182</code></pre>
+<pre class="r"><code>workCont2004 &lt;- workCont2004 %&gt;% mutate(Year = &quot;2004&quot;, Treatment = 0)
+workCont2016 &lt;- workCont2016 %&gt;% mutate(Year = &quot;2016&quot;, Treatment = 0)
+workCali2004 &lt;- workCali2004 %&gt;% mutate(Year = &quot;2004&quot;, Treatment = 1)
+workCali2016 &lt;- workCali2016 %&gt;% mutate(Year = &quot;2016&quot;, Treatment = 1)</code></pre>
+<pre class="r"><code>mergeCali2004 &lt;- workCali2004 %&gt;% dplyr::select(&quot;V1057&quot;,&quot;Race&quot;,&quot;AgeCat&quot;,&quot;Marriage&quot;, &quot;Schooling&quot;, &quot;Veteran&quot;, &quot;MentalHealthScoreLeniant&quot;, &quot;MentalHealthScoreStrict&quot;, &quot;Year&quot;, &quot;Treatment&quot;)
+mergeCont2004 &lt;- workCont2004 %&gt;% dplyr::select(&quot;V1057&quot;,&quot;Race&quot;,&quot;AgeCat&quot;,&quot;Marriage&quot;, &quot;Schooling&quot;, &quot;Veteran&quot;, &quot;MentalHealthScoreLeniant&quot;, &quot;MentalHealthScoreStrict&quot;, &quot;Year&quot;, &quot;Treatment&quot;)
+mergeCont2016 &lt;- workCont2016 %&gt;% dplyr::select(&quot;V0772&quot;,&quot;RV0003&quot;,&quot;RV0002&quot;,&quot;RV0051&quot;, &quot;RV0054&quot;, &quot;RV0008&quot;, &quot;MentalHealthScoreLeniant&quot;, &quot;MentalHealthScoreStrict&quot;, &quot;Year&quot;, &quot;Treatment&quot;)
+colnames(mergeCont2016) &lt;- c(&quot;V1057&quot;,&quot;Race&quot;,&quot;AgeCat&quot;,&quot;Marriage&quot;, &quot;Schooling&quot;, &quot;Veteran&quot;, &quot;MentalHealthScoreLeniant&quot;, &quot;MentalHealthScoreStrict&quot;, &quot;Year&quot;, &quot;Treatment&quot;)
+mergeCali2016 &lt;- workCali2016 %&gt;% dplyr::select(&quot;V0772&quot;,&quot;RV0003&quot;,&quot;RV0002&quot;,&quot;RV0051&quot;, &quot;RV0054&quot;, &quot;RV0008&quot;, &quot;MentalHealthScoreLeniant&quot;, &quot;MentalHealthScoreStrict&quot;, &quot;Year&quot;, &quot;Treatment&quot;)
+colnames(mergeCali2016) &lt;- c(&quot;V1057&quot;,&quot;Race&quot;,&quot;AgeCat&quot;,&quot;Marriage&quot;, &quot;Schooling&quot;, &quot;Veteran&quot;, &quot;MentalHealthScoreLeniant&quot;, &quot;MentalHealthScoreStrict&quot;, &quot;Year&quot;, &quot;Treatment&quot;)</code></pre>
+<pre class="r"><code>MergedSurvey &lt;- rbind(mergeCali2004, mergeCont2004, mergeCali2016, mergeCont2016)</code></pre>
+<pre class="r"><code>MergedSurvey &lt;- MergedSurvey %&gt;% filter(Race != &quot;(9) 9 = Uncategorized - Missing&quot; &amp; Schooling != &quot;(9) 9 = Missing&quot; &amp; Marriage != &quot;(98) 98 = DK/REF&quot; &amp; AgeCat != &quot;(99) 99 = Blank&quot; &amp; Veteran != &quot;(98) 98 = DK/REF&quot; &amp; is.na(MentalHealthScoreLeniant)==F)</code></pre>
+<pre class="r"><code>MergedSurvey &lt;- MergedSurvey %&gt;% mutate(Race = droplevels(Race), Schooling = droplevels(Schooling), Marriage = droplevels(Marriage), AgeCat= droplevels(AgeCat), Veteran =droplevels(Veteran), factorLeniant = as.factor(MentalHealthScoreLeniant), factorStrict = as.factor(MentalHealthScoreStrict))
+MergedSurvey$factorLeniant &lt;- factor(MergedSurvey$factorLeniant, levels = c(0,1,2,3,4,5,6),ordered=T)</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreLeniant ~ Race*Year, MergedSurvey) %&gt;% summary</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreLeniant ~ Race * Year, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.5000 -1.5139 -0.1232  1.2417  4.4861 
+## 
+## Coefficients:
+##                                                                        Estimate
+## (Intercept)                                                             2.04507
+## Race(2) 2 = Black (NH)                                                 -0.06467
+## Race(3) 3 = Hispanic                                                   -0.53116
+## Race(4) 4 = American Indian/Alaska Native (NH)                         -0.04507
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          -0.30594
+## Race(6) 6 = 2+ Races (NH)                                               0.37598
+## Race(8) 8 = Other (NH)                                                 -0.23738
+## Year2016                                                                0.07813
+## Race(2) 2 = Black (NH):Year2016                                         0.03237
+## Race(3) 3 = Hispanic:Year2016                                           0.16623
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                 0.42187
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016  0.24795
+## Race(6) 6 = 2+ Races (NH):Year2016                                     -0.06482
+## Race(8) 8 = Other (NH):Year2016                                        -0.88583
+##                                                                        Std. Error
+## (Intercept)                                                               0.04839
+## Race(2) 2 = Black (NH)                                                    0.06718
+## Race(3) 3 = Hispanic                                                      0.07115
+## Race(4) 4 = American Indian/Alaska Native (NH)                            0.27609
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)             0.27317
+## Race(6) 6 = 2+ Races (NH)                                                 0.17750
+## Race(8) 8 = Other (NH)                                                    0.36086
+## Year2016                                                                  0.06795
+## Race(2) 2 = Black (NH):Year2016                                           0.09740
+## Race(3) 3 = Hispanic:Year2016                                             0.09789
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                   0.38441
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016    0.38624
+## Race(6) 6 = 2+ Races (NH):Year2016                                        0.20425
+## Race(8) 8 = Other (NH):Year2016                                           1.85940
+##                                                                        t value
+## (Intercept)                                                             42.263
+## Race(2) 2 = Black (NH)                                                  -0.963
+## Race(3) 3 = Hispanic                                                    -7.465
+## Race(4) 4 = American Indian/Alaska Native (NH)                          -0.163
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)           -1.120
+## Race(6) 6 = 2+ Races (NH)                                                2.118
+## Race(8) 8 = Other (NH)                                                  -0.658
+## Year2016                                                                 1.150
+## Race(2) 2 = Black (NH):Year2016                                          0.332
+## Race(3) 3 = Hispanic:Year2016                                            1.698
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                  1.097
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016   0.642
+## Race(6) 6 = 2+ Races (NH):Year2016                                      -0.317
+## Race(8) 8 = Other (NH):Year2016                                         -0.476
+##                                                                        Pr(&gt;|t|)
+## (Intercept)                                                             &lt; 2e-16
+## Race(2) 2 = Black (NH)                                                   0.3358
+## Race(3) 3 = Hispanic                                                   9.08e-14
+## Race(4) 4 = American Indian/Alaska Native (NH)                           0.8703
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)            0.2628
+## Race(6) 6 = 2+ Races (NH)                                                0.0342
+## Race(8) 8 = Other (NH)                                                   0.5107
+## Year2016                                                                 0.2502
+## Race(2) 2 = Black (NH):Year2016                                          0.7396
+## Race(3) 3 = Hispanic:Year2016                                            0.0895
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                  0.2725
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016   0.5209
+## Race(6) 6 = 2+ Races (NH):Year2016                                       0.7510
+## Race(8) 8 = Other (NH):Year2016                                          0.6338
+##                                                                           
+## (Intercept)                                                            ***
+## Race(2) 2 = Black (NH)                                                    
+## Race(3) 3 = Hispanic                                                   ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                            
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)             
+## Race(6) 6 = 2+ Races (NH)                                              *  
+## Race(8) 8 = Other (NH)                                                    
+## Year2016                                                                  
+## Race(2) 2 = Black (NH):Year2016                                           
+## Race(3) 3 = Hispanic:Year2016                                          .  
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016    
+## Race(6) 6 = 2+ Races (NH):Year2016                                        
+## Race(8) 8 = Other (NH):Year2016                                           
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.823 on 9078 degrees of freedom
+## Multiple R-squared:  0.01665,    Adjusted R-squared:  0.01525 
+## F-statistic: 11.83 on 13 and 9078 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreLeniant ~ Race+Year, MergedSurvey) %&gt;% summary</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreLeniant ~ Race + Year, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.4620 -1.5697 -0.1549  1.2878  4.4303 
+## 
+## Coefficients:
+##                                                               Estimate
+## (Intercept)                                                    2.01242
+## Race(2) 2 = Black (NH)                                        -0.04629
+## Race(3) 3 = Hispanic                                          -0.44271
+## Race(4) 4 = American Indian/Alaska Native (NH)                 0.17209
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH) -0.18150
+## Race(6) 6 = 2+ Races (NH)                                      0.30706
+## Race(8) 8 = Other (NH)                                        -0.23992
+## Year2016                                                       0.14252
+##                                                               Std. Error
+## (Intercept)                                                      0.03926
+## Race(2) 2 = Black (NH)                                           0.04861
+## Race(3) 3 = Hispanic                                             0.04885
+## Race(4) 4 = American Indian/Alaska Native (NH)                   0.19210
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    0.19311
+## Race(6) 6 = 2+ Races (NH)                                        0.08665
+## Race(8) 8 = Other (NH)                                           0.35301
+## Year2016                                                         0.03879
+##                                                               t value Pr(&gt;|t|)
+## (Intercept)                                                    51.265  &lt; 2e-16
+## Race(2) 2 = Black (NH)                                         -0.952 0.340978
+## Race(3) 3 = Hispanic                                           -9.062  &lt; 2e-16
+## Race(4) 4 = American Indian/Alaska Native (NH)                  0.896 0.370368
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  -0.940 0.347284
+## Race(6) 6 = 2+ Races (NH)                                       3.544 0.000397
+## Race(8) 8 = Other (NH)                                         -0.680 0.496751
+## Year2016                                                        3.674 0.000240
+##                                                                  
+## (Intercept)                                                   ***
+## Race(2) 2 = Black (NH)                                           
+## Race(3) 3 = Hispanic                                          ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    
+## Race(6) 6 = 2+ Races (NH)                                     ***
+## Race(8) 8 = Other (NH)                                           
+## Year2016                                                      ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.823 on 9084 degrees of freedom
+## Multiple R-squared:  0.01611,    Adjusted R-squared:  0.01535 
+## F-statistic: 21.25 on 7 and 9084 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(Treatment ~ Race*Year, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Treatment ~ Race * Year, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -0.8913 -0.3352 -0.2743  0.5778  0.8248 
+## 
+## Coefficients:
+##                                                                         Estimate
+## (Intercept)                                                             0.335211
+## Race(2) 2 = Black (NH)                                                 -0.035407
+## Race(3) 3 = Hispanic                                                    0.166425
+## Race(4) 4 = American Indian/Alaska Native (NH)                          0.087011
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)           0.556093
+## Race(6) 6 = 2+ Races (NH)                                               0.077069
+## Race(8) 8 = Other (NH)                                                  0.241712
+## Year2016                                                               -0.159989
+## Race(2) 2 = Black (NH):Year2016                                         0.134535
+## Race(3) 3 = Hispanic:Year2016                                           0.056732
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                 0.112767
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016  0.007815
+## Race(6) 6 = 2+ Races (NH):Year2016                                     -0.044655
+## Race(8) 8 = Other (NH):Year2016                                         0.583066
+##                                                                        Std. Error
+## (Intercept)                                                              0.012119
+## Race(2) 2 = Black (NH)                                                   0.016825
+## Race(3) 3 = Hispanic                                                     0.017819
+## Race(4) 4 = American Indian/Alaska Native (NH)                           0.069146
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)            0.068413
+## Race(6) 6 = 2+ Races (NH)                                                0.044454
+## Race(8) 8 = Other (NH)                                                   0.090376
+## Year2016                                                                 0.017018
+## Race(2) 2 = Black (NH):Year2016                                          0.024394
+## Race(3) 3 = Hispanic:Year2016                                            0.024517
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                  0.096273
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016   0.096730
+## Race(6) 6 = 2+ Races (NH):Year2016                                       0.051153
+## Race(8) 8 = Other (NH):Year2016                                          0.465675
+##                                                                        t value
+## (Intercept)                                                             27.661
+## Race(2) 2 = Black (NH)                                                  -2.104
+## Race(3) 3 = Hispanic                                                     9.340
+## Race(4) 4 = American Indian/Alaska Native (NH)                           1.258
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)            8.128
+## Race(6) 6 = 2+ Races (NH)                                                1.734
+## Race(8) 8 = Other (NH)                                                   2.675
+## Year2016                                                                -9.401
+## Race(2) 2 = Black (NH):Year2016                                          5.515
+## Race(3) 3 = Hispanic:Year2016                                            2.314
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                  1.171
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016   0.081
+## Race(6) 6 = 2+ Races (NH):Year2016                                      -0.873
+## Race(8) 8 = Other (NH):Year2016                                          1.252
+##                                                                        Pr(&gt;|t|)
+## (Intercept)                                                             &lt; 2e-16
+## Race(2) 2 = Black (NH)                                                   0.0354
+## Race(3) 3 = Hispanic                                                    &lt; 2e-16
+## Race(4) 4 = American Indian/Alaska Native (NH)                           0.2083
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          4.92e-16
+## Race(6) 6 = 2+ Races (NH)                                                0.0830
+## Race(8) 8 = Other (NH)                                                   0.0075
+## Year2016                                                                &lt; 2e-16
+## Race(2) 2 = Black (NH):Year2016                                        3.58e-08
+## Race(3) 3 = Hispanic:Year2016                                            0.0207
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                  0.2415
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016   0.9356
+## Race(6) 6 = 2+ Races (NH):Year2016                                       0.3827
+## Race(8) 8 = Other (NH):Year2016                                          0.2106
+##                                                                           
+## (Intercept)                                                            ***
+## Race(2) 2 = Black (NH)                                                 *  
+## Race(3) 3 = Hispanic                                                   ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                            
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          ***
+## Race(6) 6 = 2+ Races (NH)                                              .  
+## Race(8) 8 = Other (NH)                                                 ** 
+## Year2016                                                               ***
+## Race(2) 2 = Black (NH):Year2016                                        ***
+## Race(3) 3 = Hispanic:Year2016                                          *  
+## Race(4) 4 = American Indian/Alaska Native (NH):Year2016                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH):Year2016    
+## Race(6) 6 = 2+ Races (NH):Year2016                                        
+## Race(8) 8 = Other (NH):Year2016                                           
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.4567 on 9078 degrees of freedom
+## Multiple R-squared:  0.05723,    Adjusted R-squared:  0.05588 
+## F-statistic: 42.39 on 13 and 9078 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(Treatment ~ Schooling*Year, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Treatment ~ Schooling * Year, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -0.4738 -0.3268 -0.2874  0.5462  0.7345 
+## 
+## Coefficients:
+##                                                   Estimate Std. Error t value
+## (Intercept)                                       0.326788   0.008957  36.484
+## Schooling(2) 2 = High School Graduate             0.135978   0.016498   8.242
+## Schooling(3) 3 = Some College                     0.147022   0.024409   6.023
+## Schooling(4) 4 = College Degree or More           0.099964   0.038202   2.617
+## Year2016                                         -0.039427   0.012394  -3.181
+## Schooling(2) 2 = High School Graduate:Year2016   -0.150697   0.023449  -6.427
+## Schooling(3) 3 = Some College:Year2016           -0.168913   0.033187  -5.090
+## Schooling(4) 4 = College Degree or More:Year2016 -0.080506   0.052565  -1.532
+##                                                  Pr(&gt;|t|)    
+## (Intercept)                                       &lt; 2e-16 ***
+## Schooling(2) 2 = High School Graduate             &lt; 2e-16 ***
+## Schooling(3) 3 = Some College                    1.77e-09 ***
+## Schooling(4) 4 = College Degree or More           0.00889 ** 
+## Year2016                                          0.00147 ** 
+## Schooling(2) 2 = High School Graduate:Year2016   1.37e-10 ***
+## Schooling(3) 3 = Some College:Year2016           3.66e-07 ***
+## Schooling(4) 4 = College Degree or More:Year2016  0.12567    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.4653 on 9084 degrees of freedom
+## Multiple R-squared:  0.02047,    Adjusted R-squared:  0.01971 
+## F-statistic: 27.11 on 7 and 9084 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(Treatment ~ Veteran*Year, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Treatment ~ Veteran * Year, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -0.3847 -0.3847 -0.2838  0.6153  0.7349 
+## 
+## Coefficients:
+##                                      Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                           0.32216    0.02373  13.577   &lt;2e-16 ***
+## Veteran(02) 2 = Non-veteran           0.06255    0.02485   2.517   0.0118 *  
+## Year2016                             -0.05710    0.03494  -1.634   0.1022    
+## Veteran(02) 2 = Non-veteran:Year2016 -0.04386    0.03641  -1.205   0.2284    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.4674 on 9088 degrees of freedom
+## Multiple R-squared:  0.01133,    Adjusted R-squared:  0.01101 
+## F-statistic: 34.73 on 3 and 9088 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(Treatment ~ AgeCat*Year, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Treatment ~ AgeCat * Year, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -0.5462 -0.3612 -0.2657  0.6179  0.7482 
+## 
+## Coefficients:
+##                                       Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                          3.661e-01  1.812e-02  20.201  &lt; 2e-16 ***
+## AgeCat(02) 2 = 25-34                -4.924e-03  2.187e-02  -0.225   0.8219    
+## AgeCat(03) 3 = 35-44                 3.649e-02  2.185e-02   1.670   0.0949 .  
+## AgeCat(04) 4 = 45-54                 1.596e-02  2.588e-02   0.617   0.5374    
+## AgeCat(05) 5 = 55-64                 2.383e-02  4.116e-02   0.579   0.5627    
+## AgeCat(06) 6 = 65 or Older          -5.659e-02  7.415e-02  -0.763   0.4454    
+## Year2016                            -1.093e-01  2.796e-02  -3.910 9.29e-05 ***
+## AgeCat(02) 2 = 25-34:Year2016       -5.284e-05  3.278e-02  -0.002   0.9987    
+## AgeCat(03) 3 = 35-44:Year2016       -2.759e-02  3.328e-02  -0.829   0.4071    
+## AgeCat(04) 4 = 45-54:Year2016        2.004e-02  3.698e-02   0.542   0.5878    
+## AgeCat(05) 5 = 55-64:Year2016        8.723e-02  5.124e-02   1.702   0.0887 .  
+## AgeCat(06) 6 = 65 or Older:Year2016  3.460e-01  8.818e-02   3.924 8.77e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.466 on 9080 degrees of freedom
+## Multiple R-squared:  0.01825,    Adjusted R-squared:  0.01706 
+## F-statistic: 15.35 on 11 and 9080 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(Treatment ~ Marriage*Year, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Treatment ~ Marriage * Year, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -0.4375 -0.3240 -0.2865  0.6168  0.7617 
+## 
+## Coefficients:
+##                                         Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)                              0.39596    0.01610  24.594  &lt; 2e-16
+## Marriage(02) 2 = Widowed                 0.01430    0.04607   0.310 0.756278
+## Marriage(03) 3 = Separated               0.04154    0.02964   1.402 0.161073
+## Marriage(04) 4 = Divorced               -0.07198    0.02268  -3.174 0.001507
+## Marriage(05) 5 = Never married          -0.01275    0.01888  -0.675 0.499550
+## Year2016                                -0.08414    0.02364  -3.560 0.000373
+## Marriage(02) 2 = Widowed:Year2016        0.02389    0.06308   0.379 0.704926
+## Marriage(03) 3 = Separated:Year2016     -0.11510    0.04370  -2.634 0.008452
+## Marriage(04) 4 = Divorced:Year2016       0.01179    0.03240   0.364 0.715890
+## Marriage(05) 5 = Never married:Year2016 -0.01252    0.02720  -0.460 0.645208
+##                                            
+## (Intercept)                             ***
+## Marriage(02) 2 = Widowed                   
+## Marriage(03) 3 = Separated                 
+## Marriage(04) 4 = Divorced               ** 
+## Marriage(05) 5 = Never married             
+## Year2016                                ***
+## Marriage(02) 2 = Widowed:Year2016          
+## Marriage(03) 3 = Separated:Year2016     ** 
+## Marriage(04) 4 = Divorced:Year2016         
+## Marriage(05) 5 = Never married:Year2016    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.4669 on 9082 degrees of freedom
+## Multiple R-squared:  0.01406,    Adjusted R-squared:  0.01308 
+## F-statistic: 14.39 on 9 and 9082 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreStrict ~ Year + Treatment + Year * 
+##     Treatment, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.9448 -1.0291 -0.7737  0.9709  5.2153 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)         1.94477    0.03061  63.543  &lt; 2e-16 ***
+## Year2016           -0.91564    0.04121 -22.221  &lt; 2e-16 ***
+## Treatment          -0.17112    0.04970  -3.443 0.000578 ***
+## Year2016:Treatment -0.07327    0.07187  -1.019 0.308010    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.6 on 9088 degrees of freedom
+## Multiple R-squared:  0.07943,    Adjusted R-squared:  0.07913 
+## F-statistic: 261.4 on 3 and 9088 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreStrict ~ Year + Treatment + Year * 
+##     Treatment + Race + Schooling, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.3101 -1.0692 -0.5125  0.9472  5.4875 
+## 
+## Coefficients:
+##                                                               Estimate
+## (Intercept)                                                    2.05282
+## Year2016                                                      -0.91195
+## Treatment                                                     -0.10291
+## Race(2) 2 = Black (NH)                                         0.01643
+## Race(3) 3 = Hispanic                                          -0.30452
+## Race(4) 4 = American Indian/Alaska Native (NH)                 0.25731
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH) -0.07460
+## Race(6) 6 = 2+ Races (NH)                                      0.23913
+## Race(8) 8 = Other (NH)                                        -0.13601
+## Schooling(2) 2 = High School Graduate                         -0.14139
+## Schooling(3) 3 = Some College                                 -0.16682
+## Schooling(4) 4 = College Degree or More                       -0.28738
+## Year2016:Treatment                                            -0.07957
+##                                                               Std. Error
+## (Intercept)                                                      0.04169
+## Year2016                                                         0.04158
+## Treatment                                                        0.05029
+## Race(2) 2 = Black (NH)                                           0.04279
+## Race(3) 3 = Hispanic                                             0.04413
+## Race(4) 4 = American Indian/Alaska Native (NH)                   0.16787
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    0.16987
+## Race(6) 6 = 2+ Races (NH)                                        0.07573
+## Race(8) 8 = Other (NH)                                           0.30846
+## Schooling(2) 2 = High School Graduate                            0.04054
+## Schooling(3) 3 = Some College                                    0.05737
+## Schooling(4) 4 = College Degree or More                          0.09050
+## Year2016:Treatment                                               0.07188
+##                                                               t value Pr(&gt;|t|)
+## (Intercept)                                                    49.244  &lt; 2e-16
+## Year2016                                                      -21.933  &lt; 2e-16
+## Treatment                                                      -2.046  0.04078
+## Race(2) 2 = Black (NH)                                          0.384  0.70110
+## Race(3) 3 = Hispanic                                           -6.900 5.53e-12
+## Race(4) 4 = American Indian/Alaska Native (NH)                  1.533  0.12538
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  -0.439  0.66056
+## Race(6) 6 = 2+ Races (NH)                                       3.158  0.00159
+## Race(8) 8 = Other (NH)                                         -0.441  0.65927
+## Schooling(2) 2 = High School Graduate                          -3.488  0.00049
+## Schooling(3) 3 = Some College                                  -2.908  0.00365
+## Schooling(4) 4 = College Degree or More                        -3.175  0.00150
+## Year2016:Treatment                                             -1.107  0.26832
+##                                                                  
+## (Intercept)                                                   ***
+## Year2016                                                      ***
+## Treatment                                                     *  
+## Race(2) 2 = Black (NH)                                           
+## Race(3) 3 = Hispanic                                          ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    
+## Race(6) 6 = 2+ Races (NH)                                     ** 
+## Race(8) 8 = Other (NH)                                           
+## Schooling(2) 2 = High School Graduate                         ***
+## Schooling(3) 3 = Some College                                 ** 
+## Schooling(4) 4 = College Degree or More                       ** 
+## Year2016:Treatment                                               
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.592 on 9079 degrees of freedom
+## Multiple R-squared:  0.08994,    Adjusted R-squared:  0.08873 
+## F-statistic: 74.77 on 12 and 9079 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreStrict ~ Year + Treatment + Year * 
+##     Treatment + Race + Schooling + AgeCat + Marriage, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.4928 -1.0749 -0.5283  0.9179  5.6404 
+## 
+## Coefficients:
+##                                                                Estimate
+## (Intercept)                                                    2.066514
+## Year2016                                                      -0.891247
+## Treatment                                                     -0.100546
+## Race(2) 2 = Black (NH)                                         0.009021
+## Race(3) 3 = Hispanic                                          -0.323303
+## Race(4) 4 = American Indian/Alaska Native (NH)                 0.269238
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH) -0.122866
+## Race(6) 6 = 2+ Races (NH)                                      0.231280
+## Race(8) 8 = Other (NH)                                        -0.178456
+## Schooling(2) 2 = High School Graduate                         -0.135865
+## Schooling(3) 3 = Some College                                 -0.146732
+## Schooling(4) 4 = College Degree or More                       -0.221954
+## AgeCat(02) 2 = 25-34                                           0.014772
+## AgeCat(03) 3 = 35-44                                          -0.009606
+## AgeCat(04) 4 = 45-54                                          -0.168621
+## AgeCat(05) 5 = 55-64                                          -0.285632
+## AgeCat(06) 6 = 65 or Older                                    -0.337363
+## Marriage(02) 2 = Widowed                                       0.180243
+## Marriage(03) 3 = Separated                                    -0.009814
+## Marriage(04) 4 = Divorced                                      0.025216
+## Marriage(05) 5 = Never married                                 0.030835
+## Year2016:Treatment                                            -0.054448
+##                                                               Std. Error
+## (Intercept)                                                     0.073445
+## Year2016                                                        0.041977
+## Treatment                                                       0.050334
+## Race(2) 2 = Black (NH)                                          0.043670
+## Race(3) 3 = Hispanic                                            0.044452
+## Race(4) 4 = American Indian/Alaska Native (NH)                  0.167779
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)   0.170210
+## Race(6) 6 = 2+ Races (NH)                                       0.075732
+## Race(8) 8 = Other (NH)                                          0.308175
+## Schooling(2) 2 = High School Graduate                           0.040566
+## Schooling(3) 3 = Some College                                   0.057583
+## Schooling(4) 4 = College Degree or More                         0.091386
+## AgeCat(02) 2 = 25-34                                            0.056199
+## AgeCat(03) 3 = 35-44                                            0.058767
+## AgeCat(04) 4 = 45-54                                            0.066759
+## AgeCat(05) 5 = 55-64                                            0.085717
+## AgeCat(06) 6 = 65 or Older                                      0.139519
+## Marriage(02) 2 = Widowed                                        0.108423
+## Marriage(03) 3 = Separated                                      0.074331
+## Marriage(04) 4 = Divorced                                       0.056355
+## Marriage(05) 5 = Never married                                  0.047848
+## Year2016:Treatment                                              0.072075
+##                                                               t value Pr(&gt;|t|)
+## (Intercept)                                                    28.137  &lt; 2e-16
+## Year2016                                                      -21.232  &lt; 2e-16
+## Treatment                                                      -1.998 0.045791
+## Race(2) 2 = Black (NH)                                          0.207 0.836348
+## Race(3) 3 = Hispanic                                           -7.273  3.8e-13
+## Race(4) 4 = American Indian/Alaska Native (NH)                  1.605 0.108590
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  -0.722 0.470405
+## Race(6) 6 = 2+ Races (NH)                                       3.054 0.002265
+## Race(8) 8 = Other (NH)                                         -0.579 0.562553
+## Schooling(2) 2 = High School Graduate                          -3.349 0.000814
+## Schooling(3) 3 = Some College                                  -2.548 0.010845
+## Schooling(4) 4 = College Degree or More                        -2.429 0.015170
+## AgeCat(02) 2 = 25-34                                            0.263 0.792667
+## AgeCat(03) 3 = 35-44                                           -0.163 0.870163
+## AgeCat(04) 4 = 45-54                                           -2.526 0.011560
+## AgeCat(05) 5 = 55-64                                           -3.332 0.000865
+## AgeCat(06) 6 = 65 or Older                                     -2.418 0.015624
+## Marriage(02) 2 = Widowed                                        1.662 0.096467
+## Marriage(03) 3 = Separated                                     -0.132 0.894963
+## Marriage(04) 4 = Divorced                                       0.447 0.654562
+## Marriage(05) 5 = Never married                                  0.644 0.519309
+## Year2016:Treatment                                             -0.755 0.450007
+##                                                                  
+## (Intercept)                                                   ***
+## Year2016                                                      ***
+## Treatment                                                     *  
+## Race(2) 2 = Black (NH)                                           
+## Race(3) 3 = Hispanic                                          ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    
+## Race(6) 6 = 2+ Races (NH)                                     ** 
+## Race(8) 8 = Other (NH)                                           
+## Schooling(2) 2 = High School Graduate                         ***
+## Schooling(3) 3 = Some College                                 *  
+## Schooling(4) 4 = College Degree or More                       *  
+## AgeCat(02) 2 = 25-34                                             
+## AgeCat(03) 3 = 35-44                                             
+## AgeCat(04) 4 = 45-54                                          *  
+## AgeCat(05) 5 = 55-64                                          ***
+## AgeCat(06) 6 = 65 or Older                                    *  
+## Marriage(02) 2 = Widowed                                      .  
+## Marriage(03) 3 = Separated                                       
+## Marriage(04) 4 = Divorced                                        
+## Marriage(05) 5 = Never married                                   
+## Year2016:Treatment                                               
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.59 on 9070 degrees of freedom
+## Multiple R-squared:  0.09337,    Adjusted R-squared:  0.09127 
+## F-statistic: 44.48 on 21 and 9070 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreStrict ~ Year + Treatment + Year * 
+##     Treatment + Race + Schooling + AgeCat, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.3790 -1.0786 -0.5422  0.9199  5.5996 
+## 
+## Coefficients:
+##                                                                Estimate
+## (Intercept)                                                    2.095263
+## Year2016                                                      -0.890100
+## Treatment                                                     -0.100433
+## Race(2) 2 = Black (NH)                                         0.008812
+## Race(3) 3 = Hispanic                                          -0.326061
+## Race(4) 4 = American Indian/Alaska Native (NH)                 0.273128
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH) -0.124939
+## Race(6) 6 = 2+ Races (NH)                                      0.232696
+## Race(8) 8 = Other (NH)                                        -0.171528
+## Schooling(2) 2 = High School Graduate                         -0.137189
+## Schooling(3) 3 = Some College                                 -0.145351
+## Schooling(4) 4 = College Degree or More                       -0.222794
+## AgeCat(02) 2 = 25-34                                           0.010622
+## AgeCat(03) 3 = 35-44                                          -0.015169
+## AgeCat(04) 4 = 45-54                                          -0.170830
+## AgeCat(05) 5 = 55-64                                          -0.280940
+## AgeCat(06) 6 = 65 or Older                                    -0.324859
+## Year2016:Treatment                                            -0.053377
+##                                                               Std. Error
+## (Intercept)                                                     0.060016
+## Year2016                                                        0.041783
+## Treatment                                                       0.050251
+## Race(2) 2 = Black (NH)                                          0.042821
+## Race(3) 3 = Hispanic                                            0.044271
+## Race(4) 4 = American Indian/Alaska Native (NH)                  0.167720
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)   0.169959
+## Race(6) 6 = 2+ Races (NH)                                       0.075640
+## Race(8) 8 = Other (NH)                                          0.308090
+## Schooling(2) 2 = High School Graduate                           0.040497
+## Schooling(3) 3 = Some College                                   0.057477
+## Schooling(4) 4 = College Degree or More                         0.091199
+## AgeCat(02) 2 = 25-34                                            0.055560
+## AgeCat(03) 3 = 35-44                                            0.056412
+## AgeCat(04) 4 = 45-54                                            0.063011
+## AgeCat(05) 5 = 55-64                                            0.081383
+## AgeCat(06) 6 = 65 or Older                                      0.135740
+## Year2016:Treatment                                              0.072034
+##                                                               t value Pr(&gt;|t|)
+## (Intercept)                                                    34.912  &lt; 2e-16
+## Year2016                                                      -21.303  &lt; 2e-16
+## Treatment                                                      -1.999 0.045678
+## Race(2) 2 = Black (NH)                                          0.206 0.836961
+## Race(3) 3 = Hispanic                                           -7.365 1.92e-13
+## Race(4) 4 = American Indian/Alaska Native (NH)                  1.628 0.103458
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  -0.735 0.462291
+## Race(6) 6 = 2+ Races (NH)                                       3.076 0.002102
+## Race(8) 8 = Other (NH)                                         -0.557 0.577716
+## Schooling(2) 2 = High School Graduate                          -3.388 0.000708
+## Schooling(3) 3 = Some College                                  -2.529 0.011460
+## Schooling(4) 4 = College Degree or More                        -2.443 0.014587
+## AgeCat(02) 2 = 25-34                                            0.191 0.848394
+## AgeCat(03) 3 = 35-44                                           -0.269 0.788014
+## AgeCat(04) 4 = 45-54                                           -2.711 0.006718
+## AgeCat(05) 5 = 55-64                                           -3.452 0.000559
+## AgeCat(06) 6 = 65 or Older                                     -2.393 0.016720
+## Year2016:Treatment                                             -0.741 0.458714
+##                                                                  
+## (Intercept)                                                   ***
+## Year2016                                                      ***
+## Treatment                                                     *  
+## Race(2) 2 = Black (NH)                                           
+## Race(3) 3 = Hispanic                                          ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    
+## Race(6) 6 = 2+ Races (NH)                                     ** 
+## Race(8) 8 = Other (NH)                                           
+## Schooling(2) 2 = High School Graduate                         ***
+## Schooling(3) 3 = Some College                                 *  
+## Schooling(4) 4 = College Degree or More                       *  
+## AgeCat(02) 2 = 25-34                                             
+## AgeCat(03) 3 = 35-44                                             
+## AgeCat(04) 4 = 45-54                                          ** 
+## AgeCat(05) 5 = 55-64                                          ***
+## AgeCat(06) 6 = 65 or Older                                    *  
+## Year2016:Treatment                                               
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.59 on 9074 degrees of freedom
+## Multiple R-squared:  0.09305,    Adjusted R-squared:  0.09135 
+## F-statistic: 54.76 on 17 and 9074 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreLeniant ~ Year + Treatment + Year * 
+##     Treatment, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.1781 -1.6548 -0.1781  1.2263  4.3452 
+## 
+## Coefficients:
+##                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)         1.94477    0.03495  55.642  &lt; 2e-16 ***
+## Year2016            0.23329    0.04706   4.958 7.27e-07 ***
+## Treatment          -0.17112    0.05676  -3.015  0.00258 ** 
+## Year2016:Treatment -0.35211    0.08208  -4.290 1.81e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.828 on 9088 degrees of freedom
+## Multiple R-squared:  0.01114,    Adjusted R-squared:  0.01081 
+## F-statistic: 34.12 on 3 and 9088 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreLeniant ~ Year + Treatment + Year * 
+##     Treatment + Race + Schooling, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.6339 -1.5931 -0.3428  1.1695  4.6820 
+## 
+## Coefficients:
+##                                                               Estimate
+## (Intercept)                                                    2.11348
+## Year2016                                                       0.22929
+## Treatment                                                     -0.09258
+## Race(2) 2 = Black (NH)                                        -0.05219
+## Race(3) 3 = Hispanic                                          -0.42775
+## Race(4) 4 = American Indian/Alaska Native (NH)                 0.19731
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH) -0.01340
+## Race(6) 6 = 2+ Races (NH)                                      0.29114
+## Race(8) 8 = Other (NH)                                        -0.18809
+## Schooling(2) 2 = High School Graduate                         -0.15864
+## Schooling(3) 3 = Some College                                 -0.14506
+## Schooling(4) 4 = College Degree or More                       -0.43449
+## Year2016:Treatment                                            -0.34582
+##                                                               Std. Error
+## (Intercept)                                                      0.04753
+## Year2016                                                         0.04741
+## Treatment                                                        0.05735
+## Race(2) 2 = Black (NH)                                           0.04880
+## Race(3) 3 = Hispanic                                             0.05032
+## Race(4) 4 = American Indian/Alaska Native (NH)                   0.19142
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    0.19369
+## Race(6) 6 = 2+ Races (NH)                                        0.08635
+## Race(8) 8 = Other (NH)                                           0.35172
+## Schooling(2) 2 = High School Graduate                            0.04623
+## Schooling(3) 3 = Some College                                    0.06542
+## Schooling(4) 4 = College Degree or More                          0.10319
+## Year2016:Treatment                                               0.08196
+##                                                               t value Pr(&gt;|t|)
+## (Intercept)                                                    44.463  &lt; 2e-16
+## Year2016                                                        4.836 1.35e-06
+## Treatment                                                      -1.614 0.106471
+## Race(2) 2 = Black (NH)                                         -1.070 0.284839
+## Race(3) 3 = Hispanic                                           -8.501  &lt; 2e-16
+## Race(4) 4 = American Indian/Alaska Native (NH)                  1.031 0.302678
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  -0.069 0.944828
+## Race(6) 6 = 2+ Races (NH)                                       3.372 0.000750
+## Race(8) 8 = Other (NH)                                         -0.535 0.592816
+## Schooling(2) 2 = High School Graduate                          -3.432 0.000602
+## Schooling(3) 3 = Some College                                  -2.217 0.026615
+## Schooling(4) 4 = College Degree or More                        -4.210 2.57e-05
+## Year2016:Treatment                                             -4.220 2.47e-05
+##                                                                  
+## (Intercept)                                                   ***
+## Year2016                                                      ***
+## Treatment                                                        
+## Race(2) 2 = Black (NH)                                           
+## Race(3) 3 = Hispanic                                          ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    
+## Race(6) 6 = 2+ Races (NH)                                     ***
+## Race(8) 8 = Other (NH)                                           
+## Schooling(2) 2 = High School Graduate                         ***
+## Schooling(3) 3 = Some College                                 *  
+## Schooling(4) 4 = College Degree or More                       ***
+## Year2016:Treatment                                            ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.815 on 9079 degrees of freedom
+## Multiple R-squared:  0.02542,    Adjusted R-squared:  0.02413 
+## F-statistic: 19.74 on 12 and 9079 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage + Veteran, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreLeniant ~ Year + Treatment + Year * 
+##     Treatment + Race + Schooling + AgeCat + Marriage + Veteran, 
+##     data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.7199 -1.5746 -0.3595  1.1749  5.1216 
+## 
+## Coefficients:
+##                                                                Estimate
+## (Intercept)                                                    2.110718
+## Year2016                                                       0.254357
+## Treatment                                                     -0.089757
+## Race(2) 2 = Black (NH)                                        -0.063855
+## Race(3) 3 = Hispanic                                          -0.450155
+## Race(4) 4 = American Indian/Alaska Native (NH)                 0.208740
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH) -0.069673
+## Race(6) 6 = 2+ Races (NH)                                      0.280632
+## Race(8) 8 = Other (NH)                                        -0.237175
+## Schooling(2) 2 = High School Graduate                         -0.154076
+## Schooling(3) 3 = Some College                                 -0.123459
+## Schooling(4) 4 = College Degree or More                       -0.357469
+## AgeCat(02) 2 = 25-34                                           0.056116
+## AgeCat(03) 3 = 35-44                                           0.042722
+## AgeCat(04) 4 = 45-54                                          -0.113956
+## AgeCat(05) 5 = 55-64                                          -0.344979
+## AgeCat(06) 6 = 65 or Older                                    -0.529584
+## Marriage(02) 2 = Widowed                                       0.143503
+## Marriage(03) 3 = Separated                                    -0.060035
+## Marriage(04) 4 = Divorced                                      0.027781
+## Marriage(05) 5 = Never married                                 0.025214
+## Veteran(02) 2 = Non-veteran                                   -0.009695
+## Year2016:Treatment                                            -0.309240
+##                                                               Std. Error
+## (Intercept)                                                     0.109861
+## Year2016                                                        0.047942
+## Treatment                                                       0.057403
+## Race(2) 2 = Black (NH)                                          0.049802
+## Race(3) 3 = Hispanic                                            0.050779
+## Race(4) 4 = American Indian/Alaska Native (NH)                  0.191229
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)   0.194030
+## Race(6) 6 = 2+ Races (NH)                                       0.086332
+## Race(8) 8 = Other (NH)                                          0.351268
+## Schooling(2) 2 = High School Graduate                           0.046429
+## Schooling(3) 3 = Some College                                   0.066269
+## Schooling(4) 4 = College Degree or More                         0.104465
+## AgeCat(02) 2 = 25-34                                            0.064055
+## AgeCat(03) 3 = 35-44                                            0.067038
+## AgeCat(04) 4 = 45-54                                            0.076454
+## AgeCat(05) 5 = 55-64                                            0.099041
+## AgeCat(06) 6 = 65 or Older                                      0.160870
+## Marriage(02) 2 = Widowed                                        0.123591
+## Marriage(03) 3 = Separated                                      0.084719
+## Marriage(04) 4 = Divorced                                       0.064267
+## Marriage(05) 5 = Never married                                  0.054559
+## Veteran(02) 2 = Non-veteran                                     0.075358
+## Year2016:Treatment                                              0.082153
+##                                                               t value Pr(&gt;|t|)
+## (Intercept)                                                    19.213  &lt; 2e-16
+## Year2016                                                        5.305 1.15e-07
+## Treatment                                                      -1.564 0.117938
+## Race(2) 2 = Black (NH)                                         -1.282 0.199807
+## Race(3) 3 = Hispanic                                           -8.865  &lt; 2e-16
+## Race(4) 4 = American Indian/Alaska Native (NH)                  1.092 0.275049
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  -0.359 0.719539
+## Race(6) 6 = 2+ Races (NH)                                       3.251 0.001156
+## Race(8) 8 = Other (NH)                                         -0.675 0.499569
+## Schooling(2) 2 = High School Graduate                          -3.319 0.000909
+## Schooling(3) 3 = Some College                                  -1.863 0.062496
+## Schooling(4) 4 = College Degree or More                        -3.422 0.000625
+## AgeCat(02) 2 = 25-34                                            0.876 0.381023
+## AgeCat(03) 3 = 35-44                                            0.637 0.523962
+## AgeCat(04) 4 = 45-54                                           -1.491 0.136123
+## AgeCat(05) 5 = 55-64                                           -3.483 0.000498
+## AgeCat(06) 6 = 65 or Older                                     -3.292 0.000999
+## Marriage(02) 2 = Widowed                                        1.161 0.245628
+## Marriage(03) 3 = Separated                                     -0.709 0.478570
+## Marriage(04) 4 = Divorced                                       0.432 0.665546
+## Marriage(05) 5 = Never married                                  0.462 0.643983
+## Veteran(02) 2 = Non-veteran                                    -0.129 0.897633
+## Year2016:Treatment                                             -3.764 0.000168
+##                                                                  
+## (Intercept)                                                   ***
+## Year2016                                                      ***
+## Treatment                                                        
+## Race(2) 2 = Black (NH)                                           
+## Race(3) 3 = Hispanic                                          ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    
+## Race(6) 6 = 2+ Races (NH)                                     ** 
+## Race(8) 8 = Other (NH)                                           
+## Schooling(2) 2 = High School Graduate                         ***
+## Schooling(3) 3 = Some College                                 .  
+## Schooling(4) 4 = College Degree or More                       ***
+## AgeCat(02) 2 = 25-34                                             
+## AgeCat(03) 3 = 35-44                                             
+## AgeCat(04) 4 = 45-54                                             
+## AgeCat(05) 5 = 55-64                                          ***
+## AgeCat(06) 6 = 65 or Older                                    ***
+## Marriage(02) 2 = Widowed                                         
+## Marriage(03) 3 = Separated                                       
+## Marriage(04) 4 = Divorced                                        
+## Marriage(05) 5 = Never married                                   
+## Veteran(02) 2 = Non-veteran                                      
+## Year2016:Treatment                                            ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.812 on 9069 degrees of freedom
+## Multiple R-squared:  0.03002,    Adjusted R-squared:  0.02766 
+## F-statistic: 12.76 on 22 and 9069 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreLeniant ~ Year + Treatment + Year * 
+##     Treatment + Race + Schooling + AgeCat, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.7119 -1.5774 -0.3508  1.1774  5.1092 
+## 
+## Coefficients:
+##                                                               Estimate
+## (Intercept)                                                    2.12466
+## Year2016                                                       0.25502
+## Treatment                                                     -0.09121
+## Race(2) 2 = Black (NH)                                        -0.06502
+## Race(3) 3 = Hispanic                                          -0.45425
+## Race(4) 4 = American Indian/Alaska Native (NH)                 0.21103
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH) -0.07299
+## Race(6) 6 = 2+ Races (NH)                                      0.28094
+## Race(8) 8 = Other (NH)                                        -0.23380
+## Schooling(2) 2 = High School Graduate                         -0.15402
+## Schooling(3) 3 = Some College                                 -0.11987
+## Schooling(4) 4 = College Degree or More                       -0.35507
+## AgeCat(02) 2 = 25-34                                           0.05125
+## AgeCat(03) 3 = 35-44                                           0.03585
+## AgeCat(04) 4 = 45-54                                          -0.11637
+## AgeCat(05) 5 = 55-64                                          -0.33978
+## AgeCat(06) 6 = 65 or Older                                    -0.51725
+## Year2016:Treatment                                            -0.30629
+##                                                               Std. Error
+## (Intercept)                                                      0.06840
+## Year2016                                                         0.04762
+## Treatment                                                        0.05727
+## Race(2) 2 = Black (NH)                                           0.04880
+## Race(3) 3 = Hispanic                                             0.05045
+## Race(4) 4 = American Indian/Alaska Native (NH)                   0.19115
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    0.19370
+## Race(6) 6 = 2+ Races (NH)                                        0.08621
+## Race(8) 8 = Other (NH)                                           0.35112
+## Schooling(2) 2 = High School Graduate                            0.04615
+## Schooling(3) 3 = Some College                                    0.06550
+## Schooling(4) 4 = College Degree or More                          0.10394
+## AgeCat(02) 2 = 25-34                                             0.06332
+## AgeCat(03) 3 = 35-44                                             0.06429
+## AgeCat(04) 4 = 45-54                                             0.07181
+## AgeCat(05) 5 = 55-64                                             0.09275
+## AgeCat(06) 6 = 65 or Older                                       0.15470
+## Year2016:Treatment                                               0.08209
+##                                                               t value Pr(&gt;|t|)
+## (Intercept)                                                    31.063  &lt; 2e-16
+## Year2016                                                        5.355 8.75e-08
+## Treatment                                                      -1.593 0.111261
+## Race(2) 2 = Black (NH)                                         -1.332 0.182810
+## Race(3) 3 = Hispanic                                           -9.003  &lt; 2e-16
+## Race(4) 4 = American Indian/Alaska Native (NH)                  1.104 0.269608
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  -0.377 0.706304
+## Race(6) 6 = 2+ Races (NH)                                       3.259 0.001122
+## Race(8) 8 = Other (NH)                                         -0.666 0.505507
+## Schooling(2) 2 = High School Graduate                          -3.337 0.000850
+## Schooling(3) 3 = Some College                                  -1.830 0.067292
+## Schooling(4) 4 = College Degree or More                        -3.416 0.000638
+## AgeCat(02) 2 = 25-34                                            0.809 0.418332
+## AgeCat(03) 3 = 35-44                                            0.558 0.577107
+## AgeCat(04) 4 = 45-54                                           -1.620 0.105161
+## AgeCat(05) 5 = 55-64                                           -3.663 0.000250
+## AgeCat(06) 6 = 65 or Older                                     -3.344 0.000830
+## Year2016:Treatment                                             -3.731 0.000192
+##                                                                  
+## (Intercept)                                                   ***
+## Year2016                                                      ***
+## Treatment                                                        
+## Race(2) 2 = Black (NH)                                           
+## Race(3) 3 = Hispanic                                          ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                   
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    
+## Race(6) 6 = 2+ Races (NH)                                     ** 
+## Race(8) 8 = Other (NH)                                           
+## Schooling(2) 2 = High School Graduate                         ***
+## Schooling(3) 3 = Some College                                 .  
+## Schooling(4) 4 = College Degree or More                       ***
+## AgeCat(02) 2 = 25-34                                             
+## AgeCat(03) 3 = 35-44                                             
+## AgeCat(04) 4 = 45-54                                             
+## AgeCat(05) 5 = 55-64                                          ***
+## AgeCat(06) 6 = 65 or Older                                    ***
+## Year2016:Treatment                                            ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.812 on 9074 degrees of freedom
+## Multiple R-squared:  0.02973,    Adjusted R-squared:  0.02791 
+## F-statistic: 16.35 on 17 and 9074 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>MergedSurvey %&gt;% ggplot(aes(x=MentalHealthScoreStrict, color=Year)) +
+  geom_density(na.rm=T, n=7) +
+  facet_wrap(~Treatment)</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+<pre class="r"><code>MergedSurvey %&gt;% ggplot(aes(x=MentalHealthScoreLeniant, color=Year)) +
+  geom_density(na.rm=T, n = 7) +
+  facet_wrap(~Treatment) + ggtitle(&quot;Box Plots of Mental Health Scores (0==Control, 1==Treatment)&quot;)</code></pre>
+<p><img src="data:image/png;base64,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" width="672" /></p>
+<pre class="r"><code>lm(MentalHealthScoreLeniant ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = MentalHealthScoreLeniant ~ Year * Treatment + Year * 
+##     Race + Year * Schooling + Year * AgeCat + Year * Marriage + 
+##     Year * Veteran, data = MergedSurvey)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.8569 -1.5551 -0.3154  1.1895  5.0702 
+## 
+## Coefficients:
+##                                                                        Estimate
+## (Intercept)                                                             2.20629
+## Year2016                                                                0.06421
+## Treatment                                                              -0.09167
+## Race(2) 2 = Black (NH)                                                 -0.11297
+## Race(3) 3 = Hispanic                                                   -0.56858
+## Race(4) 4 = American Indian/Alaska Native (NH)                         -0.03296
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          -0.29479
+## Race(6) 6 = 2+ Races (NH)                                               0.32569
+## Race(8) 8 = Other (NH)                                                 -0.30330
+## Schooling(2) 2 = High School Graduate                                  -0.03904
+## Schooling(3) 3 = Some College                                           0.02312
+## Schooling(4) 4 = College Degree or More                                -0.20835
+## AgeCat(02) 2 = 25-34                                                   -0.02952
+## AgeCat(03) 3 = 35-44                                                   -0.09197
+## AgeCat(04) 4 = 45-54                                                   -0.31055
+## AgeCat(05) 5 = 55-64                                                   -0.81856
+## AgeCat(06) 6 = 65 or Older                                             -0.91663
+## Marriage(02) 2 = Widowed                                                0.21437
+## Marriage(03) 3 = Separated                                              0.18254
+## Marriage(04) 4 = Divorced                                               0.04706
+## Marriage(05) 5 = Never married                                          0.08796
+## Veteran(02) 2 = Non-veteran                                            -0.03668
+## Year2016:Treatment                                                     -0.34941
+## Year2016:Race(2) 2 = Black (NH)                                         0.06751
+## Year2016:Race(3) 3 = Hispanic                                           0.22190
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                 0.46757
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  0.46898
+## Year2016:Race(6) 6 = 2+ Races (NH)                                     -0.04414
+## Year2016:Race(8) 8 = Other (NH)                                        -0.24849
+## Year2016:Schooling(2) 2 = High School Graduate                         -0.21769
+## Year2016:Schooling(3) 3 = Some College                                 -0.26059
+## Year2016:Schooling(4) 4 = College Degree or More                       -0.27489
+## Year2016:AgeCat(02) 2 = 25-34                                           0.21307
+## Year2016:AgeCat(03) 3 = 35-44                                           0.28393
+## Year2016:AgeCat(04) 4 = 45-54                                           0.39563
+## Year2016:AgeCat(05) 5 = 55-64                                           0.75309
+## Year2016:AgeCat(06) 6 = 65 or Older                                     0.64128
+## Year2016:Marriage(02) 2 = Widowed                                      -0.13102
+## Year2016:Marriage(03) 3 = Separated                                    -0.51668
+## Year2016:Marriage(04) 4 = Divorced                                     -0.05689
+## Year2016:Marriage(05) 5 = Never married                                -0.14563
+## Year2016:Veteran(02) 2 = Non-veteran                                    0.05421
+##                                                                        Std. Error
+## (Intercept)                                                               0.14723
+## Year2016                                                                  0.21956
+## Treatment                                                                 0.05854
+## Race(2) 2 = Black (NH)                                                    0.06898
+## Race(3) 3 = Hispanic                                                      0.07370
+## Race(4) 4 = American Indian/Alaska Native (NH)                            0.27441
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)             0.27467
+## Race(6) 6 = 2+ Races (NH)                                                 0.17669
+## Race(8) 8 = Other (NH)                                                    0.35891
+## Schooling(2) 2 = High School Graduate                                     0.06576
+## Schooling(3) 3 = Some College                                             0.09810
+## Schooling(4) 4 = College Degree or More                                   0.15233
+## AgeCat(02) 2 = 25-34                                                      0.08642
+## AgeCat(03) 3 = 35-44                                                      0.09029
+## AgeCat(04) 4 = 45-54                                                      0.11020
+## AgeCat(05) 5 = 55-64                                                      0.17083
+## AgeCat(06) 6 = 65 or Older                                                0.29652
+## Marriage(02) 2 = Widowed                                                  0.18143
+## Marriage(03) 3 = Separated                                                0.11542
+## Marriage(04) 4 = Divorced                                                 0.09066
+## Marriage(05) 5 = Never married                                            0.07621
+## Veteran(02) 2 = Non-veteran                                               0.10318
+## Year2016:Treatment                                                        0.08463
+## Year2016:Race(2) 2 = Black (NH)                                           0.09999
+## Year2016:Race(3) 3 = Hispanic                                             0.10186
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                   0.38240
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    0.38806
+## Year2016:Race(6) 6 = 2+ Races (NH)                                        0.20345
+## Year2016:Race(8) 8 = Other (NH)                                           1.84957
+## Year2016:Schooling(2) 2 = High School Graduate                            0.09298
+## Year2016:Schooling(3) 3 = Some College                                    0.13325
+## Year2016:Schooling(4) 4 = College Degree or More                          0.20934
+## Year2016:AgeCat(02) 2 = 25-34                                             0.12905
+## Year2016:AgeCat(03) 3 = 35-44                                             0.13541
+## Year2016:AgeCat(04) 4 = 45-54                                             0.15460
+## Year2016:AgeCat(05) 5 = 55-64                                             0.21370
+## Year2016:AgeCat(06) 6 = 65 or Older                                       0.35638
+## Year2016:Marriage(02) 2 = Widowed                                         0.24811
+## Year2016:Marriage(03) 3 = Separated                                       0.16996
+## Year2016:Marriage(04) 4 = Divorced                                        0.12874
+## Year2016:Marriage(05) 5 = Never married                                   0.10926
+## Year2016:Veteran(02) 2 = Non-veteran                                      0.15172
+##                                                                        t value
+## (Intercept)                                                             14.985
+## Year2016                                                                 0.292
+## Treatment                                                               -1.566
+## Race(2) 2 = Black (NH)                                                  -1.638
+## Race(3) 3 = Hispanic                                                    -7.715
+## Race(4) 4 = American Indian/Alaska Native (NH)                          -0.120
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)           -1.073
+## Race(6) 6 = 2+ Races (NH)                                                1.843
+## Race(8) 8 = Other (NH)                                                  -0.845
+## Schooling(2) 2 = High School Graduate                                   -0.594
+## Schooling(3) 3 = Some College                                            0.236
+## Schooling(4) 4 = College Degree or More                                 -1.368
+## AgeCat(02) 2 = 25-34                                                    -0.342
+## AgeCat(03) 3 = 35-44                                                    -1.019
+## AgeCat(04) 4 = 45-54                                                    -2.818
+## AgeCat(05) 5 = 55-64                                                    -4.792
+## AgeCat(06) 6 = 65 or Older                                              -3.091
+## Marriage(02) 2 = Widowed                                                 1.182
+## Marriage(03) 3 = Separated                                               1.582
+## Marriage(04) 4 = Divorced                                                0.519
+## Marriage(05) 5 = Never married                                           1.154
+## Veteran(02) 2 = Non-veteran                                             -0.356
+## Year2016:Treatment                                                      -4.129
+## Year2016:Race(2) 2 = Black (NH)                                          0.675
+## Year2016:Race(3) 3 = Hispanic                                            2.178
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                  1.223
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)   1.209
+## Year2016:Race(6) 6 = 2+ Races (NH)                                      -0.217
+## Year2016:Race(8) 8 = Other (NH)                                         -0.134
+## Year2016:Schooling(2) 2 = High School Graduate                          -2.341
+## Year2016:Schooling(3) 3 = Some College                                  -1.956
+## Year2016:Schooling(4) 4 = College Degree or More                        -1.313
+## Year2016:AgeCat(02) 2 = 25-34                                            1.651
+## Year2016:AgeCat(03) 3 = 35-44                                            2.097
+## Year2016:AgeCat(04) 4 = 45-54                                            2.559
+## Year2016:AgeCat(05) 5 = 55-64                                            3.524
+## Year2016:AgeCat(06) 6 = 65 or Older                                      1.799
+## Year2016:Marriage(02) 2 = Widowed                                       -0.528
+## Year2016:Marriage(03) 3 = Separated                                     -3.040
+## Year2016:Marriage(04) 4 = Divorced                                      -0.442
+## Year2016:Marriage(05) 5 = Never married                                 -1.333
+## Year2016:Veteran(02) 2 = Non-veteran                                     0.357
+##                                                                        Pr(&gt;|t|)
+## (Intercept)                                                             &lt; 2e-16
+## Year2016                                                               0.769952
+## Treatment                                                              0.117371
+## Race(2) 2 = Black (NH)                                                 0.101548
+## Race(3) 3 = Hispanic                                                   1.34e-14
+## Race(4) 4 = American Indian/Alaska Native (NH)                         0.904390
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          0.283199
+## Race(6) 6 = 2+ Races (NH)                                              0.065319
+## Race(8) 8 = Other (NH)                                                 0.398101
+## Schooling(2) 2 = High School Graduate                                  0.552728
+## Schooling(3) 3 = Some College                                          0.813721
+## Schooling(4) 4 = College Degree or More                                0.171419
+## AgeCat(02) 2 = 25-34                                                   0.732643
+## AgeCat(03) 3 = 35-44                                                   0.308381
+## AgeCat(04) 4 = 45-54                                                   0.004842
+## AgeCat(05) 5 = 55-64                                                   1.68e-06
+## AgeCat(06) 6 = 65 or Older                                             0.001999
+## Marriage(02) 2 = Widowed                                               0.237421
+## Marriage(03) 3 = Separated                                             0.113793
+## Marriage(04) 4 = Divorced                                              0.603723
+## Marriage(05) 5 = Never married                                         0.248507
+## Veteran(02) 2 = Non-veteran                                            0.722207
+## Year2016:Treatment                                                     3.68e-05
+## Year2016:Race(2) 2 = Black (NH)                                        0.499593
+## Year2016:Race(3) 3 = Hispanic                                          0.029396
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                0.221464
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH) 0.226872
+## Year2016:Race(6) 6 = 2+ Races (NH)                                     0.828235
+## Year2016:Race(8) 8 = Other (NH)                                        0.893127
+## Year2016:Schooling(2) 2 = High School Graduate                         0.019234
+## Year2016:Schooling(3) 3 = Some College                                 0.050545
+## Year2016:Schooling(4) 4 = College Degree or More                       0.189178
+## Year2016:AgeCat(02) 2 = 25-34                                          0.098754
+## Year2016:AgeCat(03) 3 = 35-44                                          0.036032
+## Year2016:AgeCat(04) 4 = 45-54                                          0.010512
+## Year2016:AgeCat(05) 5 = 55-64                                          0.000427
+## Year2016:AgeCat(06) 6 = 65 or Older                                    0.071982
+## Year2016:Marriage(02) 2 = Widowed                                      0.597467
+## Year2016:Marriage(03) 3 = Separated                                    0.002373
+## Year2016:Marriage(04) 4 = Divorced                                     0.658560
+## Year2016:Marriage(05) 5 = Never married                                0.182597
+## Year2016:Veteran(02) 2 = Non-veteran                                   0.720885
+##                                                                           
+## (Intercept)                                                            ***
+## Year2016                                                                  
+## Treatment                                                                 
+## Race(2) 2 = Black (NH)                                                    
+## Race(3) 3 = Hispanic                                                   ***
+## Race(4) 4 = American Indian/Alaska Native (NH)                            
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)             
+## Race(6) 6 = 2+ Races (NH)                                              .  
+## Race(8) 8 = Other (NH)                                                    
+## Schooling(2) 2 = High School Graduate                                     
+## Schooling(3) 3 = Some College                                             
+## Schooling(4) 4 = College Degree or More                                   
+## AgeCat(02) 2 = 25-34                                                      
+## AgeCat(03) 3 = 35-44                                                      
+## AgeCat(04) 4 = 45-54                                                   ** 
+## AgeCat(05) 5 = 55-64                                                   ***
+## AgeCat(06) 6 = 65 or Older                                             ** 
+## Marriage(02) 2 = Widowed                                                  
+## Marriage(03) 3 = Separated                                                
+## Marriage(04) 4 = Divorced                                                 
+## Marriage(05) 5 = Never married                                            
+## Veteran(02) 2 = Non-veteran                                               
+## Year2016:Treatment                                                     ***
+## Year2016:Race(2) 2 = Black (NH)                                           
+## Year2016:Race(3) 3 = Hispanic                                          *  
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                   
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    
+## Year2016:Race(6) 6 = 2+ Races (NH)                                        
+## Year2016:Race(8) 8 = Other (NH)                                           
+## Year2016:Schooling(2) 2 = High School Graduate                         *  
+## Year2016:Schooling(3) 3 = Some College                                 .  
+## Year2016:Schooling(4) 4 = College Degree or More                          
+## Year2016:AgeCat(02) 2 = 25-34                                          .  
+## Year2016:AgeCat(03) 3 = 35-44                                          *  
+## Year2016:AgeCat(04) 4 = 45-54                                          *  
+## Year2016:AgeCat(05) 5 = 55-64                                          ***
+## Year2016:AgeCat(06) 6 = 65 or Older                                    .  
+## Year2016:Marriage(02) 2 = Widowed                                         
+## Year2016:Marriage(03) 3 = Separated                                    ** 
+## Year2016:Marriage(04) 4 = Divorced                                        
+## Year2016:Marriage(05) 5 = Never married                                   
+## Year2016:Veteran(02) 2 = Non-veteran                                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.81 on 9050 degrees of freedom
+## Multiple R-squared:  0.03459,    Adjusted R-squared:  0.03022 
+## F-statistic: 7.909 on 41 and 9050 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>leniantOLog &lt;- polr(factorLeniant ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, Hess =T)
+strictOLog &lt;-polr(factorStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, Hess =T)</code></pre>
+<pre class="r"><code>summary(leniantOLog)</code></pre>
+<pre><code>## Call:
+## polr(formula = factorLeniant ~ Year * Treatment + Year * Race + 
+##     Year * Schooling + Year * AgeCat + Year * Marriage + Year * 
+##     Veteran, data = MergedSurvey, Hess = T)
+## 
+## Coefficients:
+##                                                                            Value
+## Year2016                                                                0.117402
+## Treatment                                                              -0.134926
+## Race(2) 2 = Black (NH)                                                 -0.116681
+## Race(3) 3 = Hispanic                                                   -0.581514
+## Race(4) 4 = American Indian/Alaska Native (NH)                         -0.042593
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          -0.387494
+## Race(6) 6 = 2+ Races (NH)                                               0.327016
+## Race(8) 8 = Other (NH)                                                 -0.316876
+## Schooling(2) 2 = High School Graduate                                  -0.036865
+## Schooling(3) 3 = Some College                                           0.084188
+## Schooling(4) 4 = College Degree or More                                -0.168800
+## AgeCat(02) 2 = 25-34                                                   -0.024206
+## AgeCat(03) 3 = 35-44                                                   -0.102475
+## AgeCat(04) 4 = 45-54                                                   -0.325771
+## AgeCat(05) 5 = 55-64                                                   -0.840354
+## AgeCat(06) 6 = 65 or Older                                             -1.029594
+## Marriage(02) 2 = Widowed                                                0.279935
+## Marriage(03) 3 = Separated                                              0.166563
+## Marriage(04) 4 = Divorced                                               0.051634
+## Marriage(05) 5 = Never married                                          0.074744
+## Veteran(02) 2 = Non-veteran                                            -0.004142
+## Year2016:Treatment                                                     -0.355154
+## Year2016:Race(2) 2 = Black (NH)                                         0.069060
+## Year2016:Race(3) 3 = Hispanic                                           0.194341
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                 0.348885
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  0.595635
+## Year2016:Race(6) 6 = 2+ Races (NH)                                     -0.066045
+## Year2016:Race(8) 8 = Other (NH)                                         0.217674
+## Year2016:Schooling(2) 2 = High School Graduate                         -0.200307
+## Year2016:Schooling(3) 3 = Some College                                 -0.281546
+## Year2016:Schooling(4) 4 = College Degree or More                       -0.308737
+## Year2016:AgeCat(02) 2 = 25-34                                           0.179386
+## Year2016:AgeCat(03) 3 = 35-44                                           0.259611
+## Year2016:AgeCat(04) 4 = 45-54                                           0.374406
+## Year2016:AgeCat(05) 5 = 55-64                                           0.662684
+## Year2016:AgeCat(06) 6 = 65 or Older                                     0.706333
+## Year2016:Marriage(02) 2 = Widowed                                      -0.175019
+## Year2016:Marriage(03) 3 = Separated                                    -0.477655
+## Year2016:Marriage(04) 4 = Divorced                                     -0.065342
+## Year2016:Marriage(05) 5 = Never married                                -0.123097
+## Year2016:Veteran(02) 2 = Non-veteran                                    0.010295
+##                                                                        Std. Error
+## Year2016                                                                  0.21608
+## Treatment                                                                 0.05813
+## Race(2) 2 = Black (NH)                                                    0.06753
+## Race(3) 3 = Hispanic                                                      0.07291
+## Race(4) 4 = American Indian/Alaska Native (NH)                            0.27692
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)             0.28573
+## Race(6) 6 = 2+ Races (NH)                                                 0.16936
+## Race(8) 8 = Other (NH)                                                    0.35674
+## Schooling(2) 2 = High School Graduate                                     0.06516
+## Schooling(3) 3 = Some College                                             0.09466
+## Schooling(4) 4 = College Degree or More                                   0.15169
+## AgeCat(02) 2 = 25-34                                                      0.08506
+## AgeCat(03) 3 = 35-44                                                      0.08926
+## AgeCat(04) 4 = 45-54                                                      0.10949
+## AgeCat(05) 5 = 55-64                                                      0.17137
+## AgeCat(06) 6 = 65 or Older                                                0.30156
+## Marriage(02) 2 = Widowed                                                  0.17836
+## Marriage(03) 3 = Separated                                                0.11383
+## Marriage(04) 4 = Divorced                                                 0.08959
+## Marriage(05) 5 = Never married                                            0.07517
+## Veteran(02) 2 = Non-veteran                                               0.10298
+## Year2016:Treatment                                                        0.08419
+## Year2016:Race(2) 2 = Black (NH)                                           0.09713
+## Year2016:Race(3) 3 = Hispanic                                             0.10022
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                   0.39438
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    0.39090
+## Year2016:Race(6) 6 = 2+ Races (NH)                                        0.19520
+## Year2016:Race(8) 8 = Other (NH)                                           1.49243
+## Year2016:Schooling(2) 2 = High School Graduate                            0.09137
+## Year2016:Schooling(3) 3 = Some College                                    0.12858
+## Year2016:Schooling(4) 4 = College Degree or More                          0.20775
+## Year2016:AgeCat(02) 2 = 25-34                                             0.12528
+## Year2016:AgeCat(03) 3 = 35-44                                             0.13194
+## Year2016:AgeCat(04) 4 = 45-54                                             0.15167
+## Year2016:AgeCat(05) 5 = 55-64                                             0.21294
+## Year2016:AgeCat(06) 6 = 65 or Older                                       0.35855
+## Year2016:Marriage(02) 2 = Widowed                                         0.24386
+## Year2016:Marriage(03) 3 = Separated                                       0.16678
+## Year2016:Marriage(04) 4 = Divorced                                        0.12688
+## Year2016:Marriage(05) 5 = Never married                                   0.10749
+## Year2016:Veteran(02) 2 = Non-veteran                                      0.15016
+##                                                                         t value
+## Year2016                                                                0.54332
+## Treatment                                                              -2.32111
+## Race(2) 2 = Black (NH)                                                 -1.72784
+## Race(3) 3 = Hispanic                                                   -7.97590
+## Race(4) 4 = American Indian/Alaska Native (NH)                         -0.15381
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          -1.35613
+## Race(6) 6 = 2+ Races (NH)                                               1.93095
+## Race(8) 8 = Other (NH)                                                 -0.88825
+## Schooling(2) 2 = High School Graduate                                  -0.56572
+## Schooling(3) 3 = Some College                                           0.88933
+## Schooling(4) 4 = College Degree or More                                -1.11280
+## AgeCat(02) 2 = 25-34                                                   -0.28459
+## AgeCat(03) 3 = 35-44                                                   -1.14806
+## AgeCat(04) 4 = 45-54                                                   -2.97527
+## AgeCat(05) 5 = 55-64                                                   -4.90385
+## AgeCat(06) 6 = 65 or Older                                             -3.41425
+## Marriage(02) 2 = Widowed                                                1.56953
+## Marriage(03) 3 = Separated                                              1.46323
+## Marriage(04) 4 = Divorced                                               0.57637
+## Marriage(05) 5 = Never married                                          0.99429
+## Veteran(02) 2 = Non-veteran                                            -0.04022
+## Year2016:Treatment                                                     -4.21842
+## Year2016:Race(2) 2 = Black (NH)                                         0.71099
+## Year2016:Race(3) 3 = Hispanic                                           1.93908
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                 0.88463
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  1.52377
+## Year2016:Race(6) 6 = 2+ Races (NH)                                     -0.33834
+## Year2016:Race(8) 8 = Other (NH)                                         0.14585
+## Year2016:Schooling(2) 2 = High School Graduate                         -2.19230
+## Year2016:Schooling(3) 3 = Some College                                 -2.18957
+## Year2016:Schooling(4) 4 = College Degree or More                       -1.48612
+## Year2016:AgeCat(02) 2 = 25-34                                           1.43190
+## Year2016:AgeCat(03) 3 = 35-44                                           1.96760
+## Year2016:AgeCat(04) 4 = 45-54                                           2.46858
+## Year2016:AgeCat(05) 5 = 55-64                                           3.11214
+## Year2016:AgeCat(06) 6 = 65 or Older                                     1.96995
+## Year2016:Marriage(02) 2 = Widowed                                      -0.71770
+## Year2016:Marriage(03) 3 = Separated                                    -2.86400
+## Year2016:Marriage(04) 4 = Divorced                                     -0.51499
+## Year2016:Marriage(05) 5 = Never married                                -1.14524
+## Year2016:Veteran(02) 2 = Non-veteran                                    0.06856
+## 
+## Intercepts:
+##     Value   Std. Error t value
+## 0|1 -1.1169  0.1472    -7.5881
+## 1|2 -0.3050  0.1468    -2.0782
+## 2|3  0.4132  0.1468     2.8151
+## 3|4  1.0573  0.1472     7.1835
+## 4|5  1.7082  0.1482    11.5253
+## 5|6  2.7652  0.1527    18.1059
+## 
+## Residual Deviance: 32411.28 
+## AIC: 32505.28</code></pre>
+<pre class="r"><code>summary(strictOLog)</code></pre>
+<pre><code>## Call:
+## polr(formula = factorStrict ~ Year * Treatment + Year * Race + 
+##     Year * Schooling + Year * AgeCat + Year * Marriage + Year * 
+##     Veteran, data = MergedSurvey, Hess = T)
+## 
+## Coefficients:
+##                                                                            Value
+## Year2016                                                               -1.124154
+## Treatment                                                              -0.139913
+## Race(2) 2 = Black (NH)                                                 -0.120255
+## Race(3) 3 = Hispanic                                                   -0.599704
+## Race(4) 4 = American Indian/Alaska Native (NH)                         -0.041339
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          -0.397712
+## Race(6) 6 = 2+ Races (NH)                                               0.341378
+## Race(8) 8 = Other (NH)                                                 -0.327726
+## Schooling(2) 2 = High School Graduate                                  -0.038008
+## Schooling(3) 3 = Some College                                           0.086613
+## Schooling(4) 4 = College Degree or More                                -0.172442
+## AgeCat(02) 2 = 25-34                                                   -0.025806
+## AgeCat(03) 3 = 35-44                                                   -0.106190
+## AgeCat(04) 4 = 45-54                                                   -0.337875
+## AgeCat(05) 5 = 55-64                                                   -0.868048
+## AgeCat(06) 6 = 65 or Older                                             -1.063434
+## Marriage(02) 2 = Widowed                                                0.289740
+## Marriage(03) 3 = Separated                                              0.172683
+## Marriage(04) 4 = Divorced                                               0.053123
+## Marriage(05) 5 = Never married                                          0.077611
+## Veteran(02) 2 = Non-veteran                                            -0.004965
+## Year2016:Treatment                                                     -0.291494
+## Year2016:Race(2) 2 = Black (NH)                                         0.274898
+## Year2016:Race(3) 3 = Hispanic                                           0.389864
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                 0.756701
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  0.564870
+## Year2016:Race(6) 6 = 2+ Races (NH)                                      0.038671
+## Year2016:Race(8) 8 = Other (NH)                                        -7.603223
+## Year2016:Schooling(2) 2 = High School Graduate                         -0.259690
+## Year2016:Schooling(3) 3 = Some College                                 -0.438472
+## Year2016:Schooling(4) 4 = College Degree or More                       -0.248464
+## Year2016:AgeCat(02) 2 = 25-34                                           0.101047
+## Year2016:AgeCat(03) 3 = 35-44                                           0.187488
+## Year2016:AgeCat(04) 4 = 45-54                                           0.243966
+## Year2016:AgeCat(05) 5 = 55-64                                           0.670581
+## Year2016:AgeCat(06) 6 = 65 or Older                                     0.863100
+## Year2016:Marriage(02) 2 = Widowed                                      -0.007801
+## Year2016:Marriage(03) 3 = Separated                                    -0.520153
+## Year2016:Marriage(04) 4 = Divorced                                     -0.132023
+## Year2016:Marriage(05) 5 = Never married                                -0.153383
+## Year2016:Veteran(02) 2 = Non-veteran                                    0.028624
+##                                                                        Std. Error
+## Year2016                                                                  0.22638
+## Treatment                                                                 0.05862
+## Race(2) 2 = Black (NH)                                                    0.06813
+## Race(3) 3 = Hispanic                                                      0.07352
+## Race(4) 4 = American Indian/Alaska Native (NH)                            0.27959
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)             0.28815
+## Race(6) 6 = 2+ Races (NH)                                                 0.17114
+## Race(8) 8 = Other (NH)                                                    0.35985
+## Schooling(2) 2 = High School Graduate                                     0.06571
+## Schooling(3) 3 = Some College                                             0.09544
+## Schooling(4) 4 = College Degree or More                                   0.15288
+## AgeCat(02) 2 = 25-34                                                      0.08582
+## AgeCat(03) 3 = 35-44                                                      0.09007
+## AgeCat(04) 4 = 45-54                                                      0.11044
+## AgeCat(05) 5 = 55-64                                                      0.17247
+## AgeCat(06) 6 = 65 or Older                                                0.30309
+## Marriage(02) 2 = Widowed                                                  0.17985
+## Marriage(03) 3 = Separated                                                0.11476
+## Marriage(04) 4 = Divorced                                                 0.09031
+## Marriage(05) 5 = Never married                                            0.07578
+## Veteran(02) 2 = Non-veteran                                               0.10386
+## Year2016:Treatment                                                        0.08884
+## Year2016:Race(2) 2 = Black (NH)                                           0.10116
+## Year2016:Race(3) 3 = Hispanic                                             0.10500
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                   0.38624
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)    0.41069
+## Year2016:Race(6) 6 = 2+ Races (NH)                                        0.19880
+## Year2016:Race(8) 8 = Other (NH)                                          78.10414
+## Year2016:Schooling(2) 2 = High School Graduate                            0.09562
+## Year2016:Schooling(3) 3 = Some College                                    0.13542
+## Year2016:Schooling(4) 4 = College Degree or More                          0.22214
+## Year2016:AgeCat(02) 2 = 25-34                                             0.13115
+## Year2016:AgeCat(03) 3 = 35-44                                             0.13780
+## Year2016:AgeCat(04) 4 = 45-54                                             0.15814
+## Year2016:AgeCat(05) 5 = 55-64                                             0.22038
+## Year2016:AgeCat(06) 6 = 65 or Older                                       0.37289
+## Year2016:Marriage(02) 2 = Widowed                                         0.25000
+## Year2016:Marriage(03) 3 = Separated                                       0.17698
+## Year2016:Marriage(04) 4 = Divorced                                        0.13222
+## Year2016:Marriage(05) 5 = Never married                                   0.11151
+## Year2016:Veteran(02) 2 = Non-veteran                                      0.15788
+##                                                                         t value
+## Year2016                                                               -4.96584
+## Treatment                                                              -2.38695
+## Race(2) 2 = Black (NH)                                                 -1.76496
+## Race(3) 3 = Hispanic                                                   -8.15650
+## Race(4) 4 = American Indian/Alaska Native (NH)                         -0.14785
+## Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)          -1.38024
+## Race(6) 6 = 2+ Races (NH)                                               1.99479
+## Race(8) 8 = Other (NH)                                                 -0.91072
+## Schooling(2) 2 = High School Graduate                                  -0.57838
+## Schooling(3) 3 = Some College                                           0.90750
+## Schooling(4) 4 = College Degree or More                                -1.12795
+## AgeCat(02) 2 = 25-34                                                   -0.30071
+## AgeCat(03) 3 = 35-44                                                   -1.17901
+## AgeCat(04) 4 = 45-54                                                   -3.05938
+## AgeCat(05) 5 = 55-64                                                   -5.03306
+## AgeCat(06) 6 = 65 or Older                                             -3.50867
+## Marriage(02) 2 = Widowed                                                1.61098
+## Marriage(03) 3 = Separated                                              1.50479
+## Marriage(04) 4 = Divorced                                               0.58822
+## Marriage(05) 5 = Never married                                          1.02410
+## Veteran(02) 2 = Non-veteran                                            -0.04781
+## Year2016:Treatment                                                     -3.28106
+## Year2016:Race(2) 2 = Black (NH)                                         2.71753
+## Year2016:Race(3) 3 = Hispanic                                           3.71310
+## Year2016:Race(4) 4 = American Indian/Alaska Native (NH)                 1.95916
+## Year2016:Race(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)  1.37542
+## Year2016:Race(6) 6 = 2+ Races (NH)                                      0.19452
+## Year2016:Race(8) 8 = Other (NH)                                        -0.09735
+## Year2016:Schooling(2) 2 = High School Graduate                         -2.71578
+## Year2016:Schooling(3) 3 = Some College                                 -3.23793
+## Year2016:Schooling(4) 4 = College Degree or More                       -1.11848
+## Year2016:AgeCat(02) 2 = 25-34                                           0.77048
+## Year2016:AgeCat(03) 3 = 35-44                                           1.36057
+## Year2016:AgeCat(04) 4 = 45-54                                           1.54273
+## Year2016:AgeCat(05) 5 = 55-64                                           3.04279
+## Year2016:AgeCat(06) 6 = 65 or Older                                     2.31461
+## Year2016:Marriage(02) 2 = Widowed                                      -0.03120
+## Year2016:Marriage(03) 3 = Separated                                    -2.93909
+## Year2016:Marriage(04) 4 = Divorced                                     -0.99854
+## Year2016:Marriage(05) 5 = Never married                                -1.37552
+## Year2016:Veteran(02) 2 = Non-veteran                                    0.18130
+## 
+## Intercepts:
+##     Value   Std. Error t value
+## 0|1 -1.1748  0.1486    -7.9030
+## 1|2 -0.3249  0.1482    -2.1926
+## 2|3  0.4308  0.1482     2.9068
+## 3|4  1.0771  0.1489     7.2361
+## 4|5  1.7667  0.1507    11.7264
+## 5|6  3.0253  0.1608    18.8168
+## 
+## Residual Deviance: 27925.73 
+## AIC: 28019.73</code></pre>
 
 
 

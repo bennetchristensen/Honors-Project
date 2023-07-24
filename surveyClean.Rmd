@@ -424,7 +424,7 @@ workCali2016 <- workCali2016 %>% mutate(Year = "2016", Treatment = 1)
 ```
 
 ```{r}
-mergeCali2004 <- workCali2004 %>% dplyr::dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCali2004 <- workCali2004 %>% dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 mergeCont2004 <- workCont2004 %>% dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 mergeCont2016 <- workCont2016 %>% dplyr::select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 colnames(mergeCont2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
