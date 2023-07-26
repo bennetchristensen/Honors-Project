@@ -4,20 +4,18 @@ library(dagitty)
 library(did)
 library(MASS)
 library(broom)
+library(Hmisc)
 ```
-
 ```{r}
 load(file="37692-0002-Data.rda")
 small <- da37692.0002[775]
 small <- small %>% filter(V0772 == "CA")
 ```
-
 ```{r}
 load(file="04572-0002-Data.rda")
 tiny <- da04572.0002[1056]
 tiny <- tiny %>% filter(V1056 == "(06) California")
 ```
-
 ```{r}
 sum(is.na(da04572.0002$V2379))
 sum(is.na(da37692.0002$V1179))
@@ -498,5 +496,33 @@ strictOLog <-polr(factorStrict ~ Year*Treatment + Year*Race + Year*Schooling + Y
 ```{r}
 summary(leniantOLog)
 summary(strictOLog)
+```
+
+```{r}
+sf <- function(y) {
+  c('Y>=0' = qlogis(mean(y >= 0)),
+    'Y>=1' = qlogis(mean(y >= 1)),
+    'Y>=2' = qlogis(mean(y >= 2)),
+    'Y>=3' = qlogis(mean(y >= 3)),
+    'Y>=4' = qlogis(mean(y >= 4)),
+    'Y>=5' = qlogis(mean(y >= 5)),
+    'Y>=6' = qlogis(mean(y >= 6)))
+  }
+
+(s <- with(MergedSurvey, summary(as.numeric(factorLeniant) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, fun=sf)))
+cbind((s[,5]-s[,4]), (s[,6] - s[,5]), (s[,7]-s[,6]) ,(s[,8]-s[,7]))
+```
+
+```{r}
+plot(s, which=1:7, pch=1:7, xlab='logit', main=' ', xlim=range(s[,4:7]))
+```
+
+```{r}
+summary(glm((factorLeniant >=1) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+summary(glm((factorLeniant >=2) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+summary(glm((factorLeniant >=3) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+summary(glm((factorLeniant >=4) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+summary(glm((factorLeniant >=5) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+summary(glm((factorLeniant >=6) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
 ```
 
