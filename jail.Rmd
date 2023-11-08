@@ -1,0 +1,131 @@
+```{r}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+```
+
+```{r}
+recode <- read_csv("StatesRecode.csv")
+```
+
+
+```{r}
+jail2010 <- read_tsv("31261-0001-Data.tsv")
+jail2011 <- read_tsv("33722-0001-Data.tsv")
+load(file="34884-0001-Data.rda")
+jail2012 <- da34884.0001
+load(file="35517-0001-Data.rda")
+jail2013 <- da35517.0001
+jail2014 <- read_tsv("36274-0001-Data.tsv")
+```
+
+```{r}
+jail2012 <- jail2012 %>% mutate(STATE= as.numeric(str_extract(STATE, "([0-9]){2}")))
+jail2013 <-left_join(jail2013, recode, by=c("STATE"="Code"))
+jail2014 <-left_join(jail2014, recode, by=c("STATE"="Code"))
+```
+```{r}
+state2010 <- jail2010 %>% group_by(state) %>% mutate(STATE=state, StateTOT = sum(totpop), StateADP=sum(adp), StateCAP = sum(rated), Year = 2010)
+state2011 <- jail2011 %>% group_by(state) %>% mutate(STATE=state, StateTOT = sum(totpop), StateADP=sum(adp), StateCAP = sum(rated), Year = 2011)
+state2012 <- jail2012 %>% group_by(STATE) %>% mutate(StateTOT = sum(TOTPOP), StateADP=sum(ADP), StateCAP = sum(RATED), Year = 2012)
+state2013 <- jail2013 %>% group_by(STATE) %>% mutate(StateTOT = sum(TOTPOP), StateADP=sum(ADP), StateCAP = sum(RATED), Year = 2013, STATE=Number)
+state2014 <- jail2014 %>% group_by(STATE) %>% mutate(StateTOT = sum(TOTPOP), StateADP=sum(ADP), StateCAP = sum(RATED), Year = 2014, STATE = Number)
+```
+
+```{r}
+state2010 <- state2010 %>% group_by(STATE) %>% filter(row_number()==1)
+state2010 <- state2010 %>% select(`STATE`, `StateTOT`, `StateADP`, `StateCAP`, `Year`)
+state2011 <- state2011 %>% group_by(STATE) %>% filter(row_number()==1)
+state2011 <- state2011 %>% select(`STATE`, `StateTOT`, `StateADP`, `StateCAP`, `Year`)
+state2012 <- state2012 %>% group_by(STATE) %>% filter(row_number()==1)
+state2012 <- state2012 %>% select(`STATE`, `StateTOT`, `StateADP`, `StateCAP`, `Year`)
+state2013 <- state2013 %>% group_by(STATE) %>% filter(row_number()==1)
+state2013 <- state2013 %>% select(`STATE`, `StateTOT`, `StateADP`, `StateCAP`, `Year`)
+state2014 <- state2014 %>% group_by(STATE) %>% filter(row_number()==1)
+state2014 <- state2014 %>% select(`STATE`, `StateTOT`, `StateADP`, `StateCAP`, `Year`)
+```
+```{r}
+stateCompare<-full_join(full_join(full_join(full_join(state2010, state2011),state2012),state2013),state2014)
+```
+```{r}
+stateCompare <- left_join(stateCompare, recode, by=c("STATE"="Number"))
+```
+
+```{r}
+stateCompare <- stateCompare %>% mutate(OverCrowdedness = StateADP/StateCAP)
+```
+
+```{r}
+stateCompare %>% ggplot(aes(x = Year, y= StateADP, group=STATE)) +
+  geom_line()+ geom_point()+ 
+  facet_wrap(~Name)+
+  geom_vline(xintercept=2012, color="red") +
+  labs(title = "Average Daily Jail Population from 2010 to 2014", x= "Year", y="Average Daily Population") +
+  theme_bw()
+stateCompare %>% ggplot(aes(x = Year, y= StateADP/StateCAP, group=STATE)) +
+  geom_line()+ geom_point()+ 
+  facet_wrap(~Name)+
+  geom_hline(yintercept=1, color="red")+
+  geom_vline(xintercept=2012, color="red") +
+  scale_y_continuous(labels = scales::percent)+
+  labs(title = "Average Daily Percent Capicity from 2010 to 2014", x= "Year", y="Average Daily Percent Capacity") +
+  theme_bw()
+stateCompare %>% ggplot(aes(x = Year, y= StateTOT/StateCAP, group=STATE)) +
+  geom_line()+ geom_point() +
+  facet_wrap(~Name)+
+  geom_hline(yintercept=1, color="red")+
+  geom_vline(xintercept=2012, color="red") + 
+  scale_y_continuous(labels = scales::percent)+
+  labs(title = "Percent Capacity from 2010 to 2014", x= "Year", y= "Percent Capacity") +
+  theme_bw()
+```
+
+```{r}
+capjail2010 <- jail2010 %>% clean_names(case="all_caps")
+capjail2011 <- jail2011 %>% clean_names(case="all_caps")
+```
+
+
+```{r}
+caplessjail2010 <- capjail2010 %>% mutate(Year=2010, ZIPP=ZIP_P) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`) 
+caplessjail2011 <- capjail2011 %>% mutate(Year=2011, ZIPP=ZIP_P) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`)
+lessjail2012 <- jail2012 %>% mutate(Year=2012) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`)
+lessjail2013 <- jail2013 %>% mutate(Year=2013, STATE=Number) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`)
+lessjail2014 <- jail2014 %>% mutate(Year=2014, FACLNAME=FACILITY, STATE=Number) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`)
+```
+
+
+```{r}
+california<-full_join(full_join(full_join(full_join(caplessjail2010, caplessjail2011),lessjail2012),lessjail2013),lessjail2014)
+```
+```{r}
+california <- california %>% filter(STATE==5)
+```
+
+```{r}
+jail <- read_csv("jail_data.csv") 
+```
+```{r}
+jail <- jail %>% mutate(DDate = `Reporting Year` + `Reporting Month`/12)
+```
+
+```{r}
+jail <- jail %>% mutate(`New mental health cases opened during this month` = as.numeric(`New mental health cases opened during this month`), `Mental health cases opened last day of month` = as.numeric(`Mental health cases opened last day of month`), `Inmates assigned to mental health beds last day of month` = as.numeric(`Inmates assigned to mental health beds last day of month`), `Inmates receiving psych medication,last day of month` = as.numeric(`Inmates receiving psych medication,last day of month`), `Releases from Overcrowding` = as.numeric(`Total # of pretrial released due to lack of capacity`)+ as.numeric(`Total # of sent. released due to lack of capacity`))
+```
+
+```{r}
+total <- jail %>% group_by(DDate) %>% summarise_if(is.numeric, sum, na.rm=T)
+```
+
+
+
+
+```{r}
+jail %>% ggplot(aes(x= DDate, y= `ADP total`, color= `Jurisdiction Name`)) +
+  geom_line()
+```
+```{r}
+cols= c("Average Daily Jail Population and Releases because of Overcrowding"= "purple" , "Average Daily Jail Population"="red", "Number of Releases because of Overcrowding"="blue")
+total %>% ggplot() + geom_line(aes(x=DDate, y= `ADP total`, color="Average Daily Jail Population")) + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2)+ ylim(c(0,110000)) + geom_line(aes(x=DDate, y = `ADP total`+`Releases from Overcrowding`, colour= "Average Daily Jail Population and Releases because of Overcrowding")) + geom_line(aes(x=DDate, y=`Releases from Overcrowding`, colour = "Number of Releases because of Overcrowding")) + labs(title = "California Monthly Jail Population", x= "Date", y="Number of People", colour="Legend") + scale_colour_manual(values=cols) + geom_label(aes(x=2009+9.5/12, y= 110000, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 110000, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 110000, label="AB 2499")) +theme_bw()
+```
+

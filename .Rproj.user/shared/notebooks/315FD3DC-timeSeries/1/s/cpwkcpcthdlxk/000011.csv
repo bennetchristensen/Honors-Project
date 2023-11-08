@@ -1,2 +1,0 @@
-"0","Controls <- longShort %>% filter(year < 2011)"
-"0","Controls <- Controls  %>% filter(AbsPercent > 0.0688)"

@@ -1,6 +1,0 @@
-"0","#Creating Veteran for 2004 based on classification in 2016"
-"0","work2004 <-work2004 %>% mutate(Veteran = as.factor(case_when("
-"0","  work2004$V0059 == ""(2) No"" ~ ""(02) 2 = Non-veteran"","
-"0","  work2004$V0059 == ""(1) Yes"" ~""(01) 1 = Veteran"","
-"0","  TRUE ~ ""(98) 98 = DK/REF"""
-"0",")))"

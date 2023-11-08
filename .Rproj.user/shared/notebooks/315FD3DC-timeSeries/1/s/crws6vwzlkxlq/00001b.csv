@@ -1,6 +1,0 @@
-"0","CaliPop <- longShort %>% filter(State==""CALIFORNIA"")"
-"0","CaliRel <- longShortReleases %>% filter(State==""CALIFORNIA"")"
-"0","CaliAdm <- longShortAdmissions %>% filter(State==""CALIFORNIA"")"
-"0","ggplot() + geom_line(data = CaliPop, aes(y= Number/start, x = year)) + geom_line(data = CaliRel, aes(y= Number/start, x = year), color=""Blue"") + geom_line(data = CaliAdm, aes(y= Number/start, x = year), color=""Green"") +"
-"0","  geom_hline(yintercept=1, color=""Red"") + scale_y_continuous(labels = scales::percent)+ "
-"0","  theme_classic()"

@@ -1,3 +1,0 @@
-"0","#1.0537717 furthest california ever got before 2011"
-"0","longShort <- longShort %>% mutate(Percent = Number/start)"
-"0","longShort <- longShort %>% mutate(AbsPercent = abs(Percent - 1))"

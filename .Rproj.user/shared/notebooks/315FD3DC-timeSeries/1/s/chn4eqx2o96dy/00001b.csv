@@ -1,5 +1,0 @@
-"0","# Plot 1: "
-"0","ggplot(data = longShort, aes(y= Number/start, x = year)) + geom_line() + "
-"0","  facet_wrap(~State) + "
-"0","  geom_hline(yintercept=1, color=""Red"") + geom_vline(xintercept=2010, color=""Red"") + scale_y_continuous(labels = scales::percent)+"
-"0","  theme_classic()"

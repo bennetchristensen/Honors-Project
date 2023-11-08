@@ -6,6 +6,11 @@ library(MASS)
 library(broom)
 library(Hmisc)
 ```
+
+```{r}
+jail2011 <- read_tsv("33722-0001-Data.tsv")
+```
+
 ```{r}
 load(file="37692-0002-Data.rda")
 small <- da37692.0002[775]
@@ -516,13 +521,68 @@ cbind((s[,5]-s[,4]), (s[,6] - s[,5]), (s[,7]-s[,6]) ,(s[,8]-s[,7]))
 ```{r}
 plot(s, which=1:7, pch=1:7, xlab='logit', main=' ', xlim=range(s[,4:7]))
 ```
+```{r}
+MergedSurvey <- MergedSurvey %>%
+  mutate(Y1 =as.factor(if_else(factorLeniant >=1, 1,0 )), Y2=as.factor(if_else(factorLeniant >=2, 1,0 )), Y3 = as.factor(if_else(factorLeniant >=3, 1,0 )), Y4 = as.factor(if_else(factorLeniant >=4, 1,0 )), Y5 =as.factor(if_else(factorLeniant >=5, 1,0 )), Y6=as.factor(if_else(factorLeniant >=6, 1,0 )))
+```
 
 ```{r}
-summary(glm((factorLeniant >=1) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
-summary(glm((factorLeniant >=2) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
-summary(glm((factorLeniant >=3) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
-summary(glm((factorLeniant >=4) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
-summary(glm((factorLeniant >=5) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
-summary(glm((factorLeniant >=6) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s1<-summary(glm((factorLeniant >=1) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s2<-summary(glm((factorLeniant >=2) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s3<-summary(glm((factorLeniant >=3) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s4<-summary(glm((factorLeniant >=4) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s5<-summary(glm((factorLeniant >=5) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s6<-summary(glm((factorLeniant >=6) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+```
+
+```{r}
+m1<-summary(glm(Y1 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m2<-summary(glm(Y2 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m3<-summary(glm(Y3 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m4<-summary(glm(Y4 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m5<-summary(glm(Y5 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m6<-summary(glm(Y6 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+```
+
+
+```{r}
+factorResults <- data.frame(Values = c(m1$coefficients[23], m1$coefficients[23] + m1$coefficients[65], m1$coefficients[23] - m1$coefficients[65],
+                                 m2$coefficients[23], m2$coefficients[23] + m2$coefficients[65], m2$coefficients[23] - m2$coefficients[65],
+                                 m3$coefficients[23], m3$coefficients[23] + m3$coefficients[65], m3$coefficients[23] - m3$coefficients[65],
+                                 m4$coefficients[23], m4$coefficients[23] + m4$coefficients[65], m4$coefficients[23] - m4$coefficients[65],
+                                 m5$coefficients[23], m5$coefficients[23] + m5$coefficients[65], m5$coefficients[23] - m5$coefficients[65],
+                                 m6$coefficients[23], m6$coefficients[23] + m6$coefficients[65], m6$coefficients[23] - m6$coefficients[65]),
+                      type= c("Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error"), Group = c(">= 1",">= 1",">= 1",
+                                                                                                         ">= 2",">= 2",">= 2",
+                                                                                                         ">= 3",">= 3",">= 3",
+                                                                                                         ">= 4",">= 4",">= 4",
+                                                                                                         ">= 5",">= 5",">= 5",
+                                                                                                         ">= 6",">= 6",">= 6"))
+
+```
+
+```{r}
+results <- data.frame(Values = c(s1$coefficients[23], s1$coefficients[23] + s1$coefficients[65], s1$coefficients[23] - s1$coefficients[65],
+                                 s2$coefficients[23], s2$coefficients[23] + s2$coefficients[65], s2$coefficients[23] - s2$coefficients[65],
+                                 s3$coefficients[23], s3$coefficients[23] + s3$coefficients[65], s3$coefficients[23] - s3$coefficients[65],
+                                 s4$coefficients[23], s4$coefficients[23] + s4$coefficients[65], s4$coefficients[23] - s4$coefficients[65],
+                                 s5$coefficients[23], s5$coefficients[23] + s5$coefficients[65], s5$coefficients[23] - s5$coefficients[65],
+                                 s6$coefficients[23], s6$coefficients[23] + s6$coefficients[65], s6$coefficients[23] - s6$coefficients[65]),
+                      type= c("Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error"), Group = c(">= 1",">= 1",">= 1",
+                                                                                                         ">= 2",">= 2",">= 2",
+                                                                                                         ">= 3",">= 3",">= 3",
+                                                                                                         ">= 4",">= 4",">= 4",
+                                                                                                         ">= 5",">= 5",">= 5",
+                                                                                                         ">= 6",">= 6",">= 6"))
+
+```
+
+
+
+```{r}
+ggplot(data=results, aes(y=Values, x = Group, shape =type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(16,4))
+ggsave("results.png")
+
+ggplot(data=factorResults, aes(y=Values, x = Group, shape =type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(16,4))
 ```
 
