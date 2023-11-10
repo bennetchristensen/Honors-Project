@@ -2,7 +2,13 @@
 library(tidyverse)
 library(lubridate)
 library(janitor)
+library(sf)
 ```
+
+```{r}
+capacity <- read_csv("ratedCapacity23.csv")
+```
+
 
 ```{r}
 recode <- read_csv("StatesRecode.csv")
@@ -87,11 +93,11 @@ capjail2011 <- jail2011 %>% clean_names(case="all_caps")
 
 
 ```{r}
-caplessjail2010 <- capjail2010 %>% mutate(Year=2010, ZIPP=ZIP_P) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`) 
-caplessjail2011 <- capjail2011 %>% mutate(Year=2011, ZIPP=ZIP_P) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`)
-lessjail2012 <- jail2012 %>% mutate(Year=2012) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`)
-lessjail2013 <- jail2013 %>% mutate(Year=2013, STATE=Number) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`)
-lessjail2014 <- jail2014 %>% mutate(Year=2014, FACLNAME=FACILITY, STATE=Number) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`)
+caplessjail2010 <- capjail2010 %>% mutate(Year=2010, ZIPP=ZIP_P) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`, `RATED`) 
+caplessjail2011 <- capjail2011 %>% mutate(Year=2011, ZIPP=ZIP_P) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`, `RATED`)
+lessjail2012 <- jail2012 %>% mutate(Year=2012) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`, `RATED`)
+lessjail2013 <- jail2013 %>% mutate(Year=2013, STATE=Number) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`, `RATED`)
+lessjail2014 <- jail2014 %>% mutate(Year=2014, FACLNAME=FACILITY, STATE=Number) %>% select(`STATE`, `COUNTY`, `FACLNAME`, `CITY`, `ZIPP`, `Year`, `RATED`)
 ```
 
 
@@ -113,11 +119,62 @@ jail <- jail %>% mutate(DDate = `Reporting Year` + `Reporting Month`/12)
 jail <- jail %>% mutate(`New mental health cases opened during this month` = as.numeric(`New mental health cases opened during this month`), `Mental health cases opened last day of month` = as.numeric(`Mental health cases opened last day of month`), `Inmates assigned to mental health beds last day of month` = as.numeric(`Inmates assigned to mental health beds last day of month`), `Inmates receiving psych medication,last day of month` = as.numeric(`Inmates receiving psych medication,last day of month`), `Releases from Overcrowding` = as.numeric(`Total # of pretrial released due to lack of capacity`)+ as.numeric(`Total # of sent. released due to lack of capacity`))
 ```
 
+
+```{r}
+jail<- jail %>% mutate(Jurisdiction=gsub("( Sheriff's Dept[\\.])", "", jail$`Jurisdiction Name`))
+```
+
+
 ```{r}
 total <- jail %>% group_by(DDate) %>% summarise_if(is.numeric, sum, na.rm=T)
 ```
 
+```{r}
+#Santa Rita Jail Missing in 2010, can't figure out why, but I don't think it should be
+capacity <- capacity %>% mutate(Date= mdy(Date), Jurisdiction=case_when(Jurisdiction=="Santa Ana PD" ~ "Santa Ana Police Dept.", 
+                                                                        Jurisdiction=="Madera" ~ "Madera Corrections Dept.",
+                                                                        Jurisdiction=="Napa" ~ "Napa Corrections Dept.", 
+                                                                        Jurisdiction=="Santa Clara" ~ "Santa Clara Sheriff’s Office",
+                                                                        T ~ Jurisdiction))
+capacity <- capacity %>% mutate(DDate= decimal_date(Date))
+```
 
+```{r}
+capSum <- capacity %>% group_by(Jurisdiction, DDate) %>% summarise(CAPACITY = sum(`Total RC`))
+```
+```{r}
+limitJail <- jail %>% filter(`Reporting Year` > 2006)
+limitCapSum <- capSum %>% filter(DDate < 2020)
+```
+
+
+```{r}
+hugeJail <- left_join(limitJail, limitCapSum, by="Jurisdiction")
+jailCap <- hugeJail %>% group_by(DDate.x) %>% filter(DDate.x >= DDate.y)
+jailCap <- jailCap %>% mutate(diffDate = DDate.x-DDate.y) %>% group_by(DDate.x, Jurisdiction) %>% slice_min(diffDate) 
+```
+
+```{r}
+unique(limitJail$`Jurisdiction Name`)[!unique(limitJail$`Jurisdiction Name`) %in% unique(jailCap$`Jurisdiction Name`)]
+```
+
+
+```{r}
+jailCap %>% ggplot(aes(x= DDate.x, y= `Jurisdiction Name`)) +
+  geom_point()
+limitJail %>% ggplot(aes(x= DDate, y= `Jurisdiction Name`)) +
+  geom_point()
+```
+
+```{r}
+jailCap <- jailCap %>% mutate(Crowdedness = `ADP total`/`CAPACITY`)
+```
+
+
+```{r}
+jailCap %>% ggplot(aes(x= DDate.x, y= Crowdedness)) +
+  geom_line() + facet_wrap(~`Jurisdiction Name`) + geom_hline(yintercept=1, color="red")
+```
 
 
 ```{r}
@@ -127,5 +184,19 @@ jail %>% ggplot(aes(x= DDate, y= `ADP total`, color= `Jurisdiction Name`)) +
 ```{r}
 cols= c("Average Daily Jail Population and Releases because of Overcrowding"= "purple" , "Average Daily Jail Population"="red", "Number of Releases because of Overcrowding"="blue")
 total %>% ggplot() + geom_line(aes(x=DDate, y= `ADP total`, color="Average Daily Jail Population")) + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2)+ ylim(c(0,110000)) + geom_line(aes(x=DDate, y = `ADP total`+`Releases from Overcrowding`, colour= "Average Daily Jail Population and Releases because of Overcrowding")) + geom_line(aes(x=DDate, y=`Releases from Overcrowding`, colour = "Number of Releases because of Overcrowding")) + labs(title = "California Monthly Jail Population", x= "Date", y="Number of People", colour="Legend") + scale_colour_manual(values=cols) + geom_label(aes(x=2009+9.5/12, y= 110000, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 110000, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 110000, label="AB 2499")) +theme_bw()
+```
+```{r}
+cols= c("Average Daily Jail Population"="red", "Number of Releases because of Overcrowding"="blue")
+total %>% ggplot() + geom_line(aes(x=DDate, y= `ADP total`, color="Average Daily Jail Population")) + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2)+ ylim(c(0,110000)) + geom_line(aes(x=DDate, y=`Releases from Overcrowding`, colour = "Number of Releases because of Overcrowding")) + labs(title = "California Monthly Jail Population", x= "Date", y="Number of People", colour="Legend") + scale_colour_manual(values=cols) + geom_label(aes(x=2009+9.5/12, y= 110000, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 110000, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 110000, label="AB 2499")) +theme_bw()
+```
+```{r}
+
+capTotal <- jailCap %>% group_by(DDate.x) %>% summarise_if(is.numeric, sum, na.rm=T)
+
+```
+
+```{r}
+capTotal %>% ggplot(aes(x= DDate.x, y= `ADP total`/`CAPACITY`)) +geom_line() + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2) + geom_hline(yintercept = 1, color="red") + labs(title = "California Monthly Jail Crowdedness", x= "Date", y="% of Capacity Used by all Jails") + 
+  scale_y_continuous(labels = scales::percent) + theme_bw()+ geom_label(aes(x=2009+9.5/12, y= 1.10, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 1.10, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 1.10, label="AB 2499")) +theme_bw()
 ```
 
