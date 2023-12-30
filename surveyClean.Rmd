@@ -8,37 +8,26 @@ library(Hmisc)
 ```
 
 ```{r}
+#Read in data from Annual Survey of Jails: Jail-Level Data, 2011
 jail2011 <- read_tsv("33722-0001-Data.tsv")
 ```
 
 ```{r}
+#Read in data from Survey of Prison Inmates, United States, 2016
 load(file="37692-0002-Data.rda")
-small <- da37692.0002[775]
-small <- small %>% filter(V0772 == "CA")
 ```
 ```{r}
+#Read in data from Survey of Inmates in State and Federal Correctional Facilities, [United States], 2004
 load(file="04572-0002-Data.rda")
-tiny <- da04572.0002[1056]
-tiny <- tiny %>% filter(V1056 == "(06) California")
 ```
 ```{r}
-sum(is.na(da04572.0002$V2379))
+#Count the number of observations that are NA for mental health questions
+sum(is.na(da04572.0002$V2379)) 
 sum(is.na(da37692.0002$V1179))
-```
-
-
-```{r}
-122374/(122374+139446+897316)
-(1227+119)/(20064)
-1375/(20064)
-```
-```{r}
-(1374+347)/14499
-1757/14499
-
 ```
   
 ```{r}
+#Selects the variables of interest, state, age, sex, race, mental health questions, veteran status and marital status. I reclassify I think all of them so I won't elaborate here
 work2004 <- da04572.0002 %>% dplyr::select("V1057", "V0014","V0018","V0029","V0030","V0031","V0032","V0033", "V0034", "V0059", "V0058", "V1740", "V1857","V2272", "V2273","V2386", "V2387", "V2388", "V2392", "V2394", "V2395")
 work2016 <- da37692.0002 %>% dplyr::select("V0772", "RV0002","RV0003", "RV0008", "RV0051", "RV0054", "V1145", "V1201", "V1202", "V1179", "V1180", "V1181", "V1182", "V1183", "V1184")
 ```
@@ -46,7 +35,10 @@ work2016 <- da37692.0002 %>% dplyr::select("V0772", "RV0002","RV0003", "RV0008",
 ```{r}
 #Creating Race Categorical for 2004 based on classification in 2016
 work2004 <- work2004 %>% mutate(Race = as.factor(case_when(
-  if_else(is.na(work2004$V0029 == "(1) White")==T, 0,1) + if_else(is.na(work2004$V0030 == "(2) Black or African American")==T,0,1) + if_else(is.na(work2004$V0031 == "(3) American Indian or Alaska Native")==T,0,1) + if_else(is.na(work2004$V0032 == "(4) Asian")==T, 0,1) > 1 & work2004$V0018 == "(2) No" ~ "(6) 6 = 2+ Races (NH)",
+  if_else(is.na(work2004$V0029 == "(1) White")==T, 0,1) + 
+    if_else(is.na(work2004$V0030 == "(2) Black or African American")==T,0,1) + 
+    if_else(is.na(work2004$V0031 == "(3) American Indian or Alaska Native")==T,0,1) + 
+    if_else(is.na(work2004$V0032 == "(4) Asian")==T, 0,1) > 1 & work2004$V0018 == "(2) No" ~ "(6) 6 = 2+ Races (NH)",
   work2004$V0029 == "(1) White" & work2004$V0018 == "(2) No" ~ "(1) 1 = White (NH)",
   work2004$V0030 == "(2) Black or African American" & work2004$V0018 == "(2) No" ~ "(2) 2 = Black (NH)",
   work2004$V0018 == "(1) Yes" ~ "(3) 3 = Hispanic",
@@ -94,6 +86,8 @@ work2004 <-work2004 %>% mutate(Marriage = as.factor(case_when(
 ```{r}
 #creating a numerical school year to make creating categories easier
 work2004 <- work2004 %>% mutate(numericSchool = as.numeric(gsub("[[:space:]]", "",gsub("[\\(\\)]", "", regmatches(work2004$V1740, gregexpr("\\([[:digit:]]*?\\)", work2004$V1740))))))
+
+
 #Creating Marital Status for 2004 based on classification in 2016. For the sake of this variable I am assuming that the highest grade of school attended is the highest grade of school completed. We just can't know
 work2004 <-work2004 %>% mutate(Schooling = as.factor(case_when(
   (work2004$numericSchool < 12) ~ "(1) 1 = Less Than High School",
@@ -104,7 +98,7 @@ work2004 <-work2004 %>% mutate(Schooling = as.factor(case_when(
 )))
 ```
 ```{r}
-#create the medbefore variable
+#create the medbefore variable so the two surveys line up
 work2004 <-work2004 %>% mutate(MedBefore = as.factor(case_when(
   work2004$V2272 == "(1) Yes" ~ "(1) 1 = Yes",
   work2004$V2272 == "(2) No" ~ "(2) 2 = No ",
@@ -115,7 +109,7 @@ work2004 <-work2004 %>% mutate(MedBefore = as.factor(case_when(
 ```
 
 ```{r}
-#create the medAfter variable
+#create the medAfter variable so the two surveys line up
 work2004 <-work2004 %>% mutate(MedAfter = as.factor(case_when(
   work2004$V2273 == "(1) Yes" ~ "(1) 1 = Yes",
   work2004$V2273 == "(2) No" ~ "(2) 2 = No ",
@@ -126,7 +120,7 @@ work2004 <-work2004 %>% mutate(MedAfter = as.factor(case_when(
 ```
 
 ```{r}
-#Create incomeCat Variable
+#Create incomeCat Variable, don't think we ever used this, not much data and too many problems with not knowing the year for inflation reasons and not knowing where they live to adjust cost of living, and they can't access that income in prison anyways
 work2004 <-work2004 %>% mutate(IncomeCat = as.factor(case_when(
   work2004$V1857 == "(1) Yes" ~ "(1) 1 = Yes",
   work2004$V2273 == "(2) No" ~ "(2) 2 = No ",
@@ -137,13 +131,9 @@ work2004 <-work2004 %>% mutate(IncomeCat = as.factor(case_when(
 ```
 
 
-```{r}
-#if I adjust for inflation I'll use this code
-sub("\\([[:digit:]]*?\\).*","",gsub(",","",gsub(" ", "", "(09) 1,200 - 1,300")))
-
-```
 
 ```{r}
+#I believe this is code from daggity. I haven't used it but it could be useful to
 testImplications <- function( covariance.matrix, sample.size ){
 	library(ggm)
 	tst <- function(i){ pcor.test( pcor(i,covariance.matrix), length(i)-2, sample.size )$pvalue }
@@ -224,6 +214,8 @@ implications <- list(c("E: California Incarceration","Income"),
 ```
 
 ```{r}
+#Convert the mental health screener questions to numerical binary so that I can sum them to create the mental health scores
+
 work2004 <- work2004 %>% mutate(NervousBin = case_when(
   work2004$V2386 == "(1) Yes" ~ 1,
   work2004$V2386 == "(2) No" ~ 0
@@ -253,6 +245,8 @@ work2004 <-work2004 %>% mutate(MentalHealthScoreLeniant = NervousBin + HopelessB
 ```
 
 ```{r}
+#Convert the mental health screaner responses to binary, with some to all of the time being 1 and a little to none of the time being zero, and then summing them to create leniant health score
+
 work2016 <-work2016 %>% mutate(NervousBin = case_when(
   work2016$V1179 == "(1) 1 = All of the Time" ~ 1,
   work2016$V1179 == "(2) 2 = Most of the Time"~ 1,
@@ -301,6 +295,8 @@ work2016 <-work2016 %>% mutate(MentalHealthScoreLeniant = NervousBin + HopelessB
 
 
 ```{r}
+#Convert the mental health screener questions to numerical binary so that I can sum them to create the mental health scores
+
 work2004 <- work2004 %>% mutate(NervousBin = case_when(
   work2004$V2386 == "(1) Yes" ~ 1,
   work2004$V2386 == "(2) No" ~ 0
@@ -331,6 +327,8 @@ work2004 <-work2004 %>% mutate(MentalHealthScoreStrict = NervousBin + HopelessBi
 
 
 ```{r}
+#Convert the mental health screaner responses to binary, with most to all of the time being 1 and a some to none of the time being zero, and then summing them to create strict health score
+
 work2016 <-work2016 %>% mutate(NervousBin = case_when(
   work2016$V1179 == "(1) 1 = All of the Time" ~ 1,
   work2016$V1179 == "(2) 2 = Most of the Time"~ 1,
@@ -378,35 +376,48 @@ work2016 <-work2016 %>% mutate(MentalHealthScoreStrict = NervousBin + HopelessBi
 ```
 
 ```{r}
-workCali2004 <- work2004 %>% filter(V1057=="CA")
-workCali2016 <- work2016 %>% filter(V0772=="CA")
-workCont2004 <- work2004 %>% filter(V1057=="TX" | V1057=="WI" | V1057=="MO" | V1057=="DE")
-workCont2016 <- work2016 %>% filter(V0772=="TX" | V0772=="WI" | V0772=="MO" | V0772=="DE")
+#create data frame for control states and California for the two surveys
+
+workCali2004 <- work2004 %>% filter(V1057=="CA") #2004 California
+workCali2016 <- work2016 %>% filter(V0772=="CA") #2016 Californa
+workCont2004 <- work2004 %>% filter(V1057=="TX" | V1057=="WI" | V1057=="MO" | V1057=="DE") #2004 Control
+workCont2016 <- work2016 %>% filter(V0772=="TX" | V0772=="WI" | V0772=="MO" | V0772=="DE") #2016 Control
 ```
 
 
 ```{r}
-cbind((workCali2004 %>% count(Race))[1],-(workCali2004 %>% count(Race))[2]/1757 + (workCali2016 %>% count(RV0003))[2]/1375)
-cbind((workCali2004 %>% count(AgeCat))[1],-(workCali2004 %>% count(AgeCat))[2]/1757 + rbind((workCali2016 %>% count(RV0002))[2],0)/1375)
-cbind((workCali2004 %>% count(Veteran))[1],-(workCali2004 %>% count(Veteran))[2]/1757 + (workCali2016 %>% count(RV0008))[2]/1375)
-cbind((workCali2004 %>% count(Marriage))[1],-(workCali2004 %>% count(Marriage))[2]/1757 + rbind((workCali2016 %>% count(RV0051))[2],0)/1375)
-cbind((workCali2004 %>% count(Schooling))[1],-(workCali2004 %>% count(Schooling))[2]/1757 + (workCali2016 %>% count(RV0054))[2]/1375)
+#create a chart for each variable with the percent change of levels of the variables in California from 2004 to 2016
+
+cbind((workCali2004 %>% count(Race))[1],-(workCali2004 %>% count(Race))[2]/1757 + (workCali2016 %>% count(RV0003))[2]/1375) #Race chart
+cbind((workCali2004 %>% count(AgeCat))[1],-(workCali2004 %>% count(AgeCat))[2]/1757 + rbind((workCali2016 %>% count(RV0002))[2],0)/1375) #Age Chart
+cbind((workCali2004 %>% count(Veteran))[1],-(workCali2004 %>% count(Veteran))[2]/1757 + (workCali2016 %>% count(RV0008))[2]/1375) #Veteran Chart
+cbind((workCali2004 %>% count(Marriage))[1],-(workCali2004 %>% count(Marriage))[2]/1757 + rbind((workCali2016 %>% count(RV0051))[2],0)/1375) #Marriage Chart
+cbind((workCali2004 %>% count(Schooling))[1],-(workCali2004 %>% count(Schooling))[2]/1757 + (workCali2016 %>% count(RV0054))[2]/1375) #Education Chart
 ```
 
 ```{r}
-cbind((workCont2004 %>% count(Race))[1],-(workCont2004 %>% count(Race))[2]/2835 + (add_row(count(workCont2016, RV0003)[2]/3442, n=0, .before = 7)))
-cbind((workCont2004 %>% count(AgeCat))[1],-(workCont2004 %>% count(AgeCat))[2]/2835 + rbind((workCont2016 %>% count(RV0002))[2],0)/3442)
-cbind((workCont2004 %>% count(Veteran))[1],-(workCont2004 %>% count(Veteran))[2]/2835 + (rbind((workCont2016 %>% count(RV0008))[2],0)/3442))
-cbind((workCont2004 %>% count(Marriage))[1],-(workCont2004 %>% count(Marriage))[2]/2835 + (workCont2016 %>% count(RV0051))[2]/3442)
-cbind((workCont2004 %>% count(Schooling))[1],-(workCont2004 %>% count(Schooling))[2]/2835 + (workCont2016 %>% count(RV0054))[2]/3442)
+#create a chart for each variable with the percent change of levels of the variables in control states  from 2004 to 2016
+
+cbind((workCont2004 %>% count(Race))[1],-(workCont2004 %>% count(Race))[2]/2835 + (add_row(count(workCont2016, RV0003)[2]/3442, n=0, .before = 7))) #Race Chart
+cbind((workCont2004 %>% count(AgeCat))[1],-(workCont2004 %>% count(AgeCat))[2]/2835 + rbind((workCont2016 %>% count(RV0002))[2],0)/3442) #Age Chart
+cbind((workCont2004 %>% count(Veteran))[1],-(workCont2004 %>% count(Veteran))[2]/2835 + (rbind((workCont2016 %>% count(RV0008))[2],0)/3442)) #Veteran Chart
+cbind((workCont2004 %>% count(Marriage))[1],-(workCont2004 %>% count(Marriage))[2]/2835 + (workCont2016 %>% count(RV0051))[2]/3442) #Marriage Chart
+cbind((workCont2004 %>% count(Schooling))[1],-(workCont2004 %>% count(Schooling))[2]/2835 + (workCont2016 %>% count(RV0054))[2]/3442) #Education Chart
 ```
+
+
 ```{r}
+#creates a chart with the breakdown of how many people had what mental health scores in each year and group, one with total count and one with percent of the group
+
+#Count Chart
 MentalChart<-cbind((workCont2016 %>% count(MentalHealthScoreLeniant))[1],
 (workCont2004 %>% count(MentalHealthScoreLeniant))[2],
 (workCont2016 %>% count(MentalHealthScoreLeniant))[2],
 (workCali2004 %>% count(MentalHealthScoreLeniant))[2],
 (workCali2016 %>% count(MentalHealthScoreLeniant))[2]
-)
+) 
+
+#Percent Chart
 colnames(MentalChart)[2:5] <- c("2004 Control", "2016 Control","2004 California", "2016 California")
 MentalChart
 MentalChartPerc<-cbind((workCont2016 %>% count(MentalHealthScoreLeniant))[1],
@@ -415,11 +426,14 @@ MentalChartPerc<-cbind((workCont2016 %>% count(MentalHealthScoreLeniant))[1],
 (workCali2004 %>% count(MentalHealthScoreLeniant))[2]/1757,
 (workCali2016 %>% count(MentalHealthScoreLeniant))[2]/1375
 )
+
+#Rename Columns 
 colnames(MentalChartPerc)[2:5] <- c("2004 Control", "2016 Control","2004 California", "2016 California")
 MentalChartPerc
 ```
 
 ```{r}
+#Create variables for year and treatment group status (California = 1, Control =0)
 workCont2004 <- workCont2004 %>% mutate(Year = "2004", Treatment = 0)
 workCont2016 <- workCont2016 %>% mutate(Year = "2016", Treatment = 0)
 workCali2004 <- workCali2004 %>% mutate(Year = "2004", Treatment = 1)
@@ -427,6 +441,8 @@ workCali2016 <- workCali2016 %>% mutate(Year = "2016", Treatment = 1)
 ```
 
 ```{r}
+#Select the matching named variables for all the data frames
+
 mergeCali2004 <- workCali2004 %>% dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 mergeCont2004 <- workCont2004 %>% dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
 mergeCont2016 <- workCont2016 %>% dplyr::select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScoreLeniant", "MentalHealthScoreStrict", "Year", "Treatment")
@@ -436,74 +452,93 @@ colnames(mergeCali2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "V
 ```
 
 ```{r}
+#Merged all the data into one data frame
 MergedSurvey <- rbind(mergeCali2004, mergeCont2004, mergeCali2016, mergeCont2016)
 ```
 ```{r}
+#Removed NAs from the data frame
 MergedSurvey <- MergedSurvey %>% filter(Race != "(9) 9 = Uncategorized - Missing" & Schooling != "(9) 9 = Missing" & Marriage != "(98) 98 = DK/REF" & AgeCat != "(99) 99 = Blank" & Veteran != "(98) 98 = DK/REF" & is.na(MentalHealthScoreLeniant)==F)
 ```
 
 ```{r}
-MergedSurvey <- MergedSurvey %>% mutate(Race = droplevels(Race), Schooling = droplevels(Schooling), Marriage = droplevels(Marriage), AgeCat= droplevels(AgeCat), Veteran =droplevels(Veteran), factorLeniant = as.factor(MentalHealthScoreLeniant), factorStrict = as.factor(MentalHealthScoreStrict))
+#Dropped levels on covariates, I can't remember why but I think the levels were preventing the model from running. Also converted the mental health scores into factors
+MergedSurvey <- MergedSurvey %>% mutate(Race = droplevels(Race), 
+                                        Schooling = droplevels(Schooling),
+                                        Marriage = droplevels(Marriage), 
+                                        AgeCat= droplevels(AgeCat),
+                                        Veteran =droplevels(Veteran), 
+                                        factorLeniant = as.factor(MentalHealthScoreLeniant), 
+                                        factorStrict = as.factor(MentalHealthScoreStrict))
+#Ordered the mental health score 
 MergedSurvey$factorLeniant <- factor(MergedSurvey$factorLeniant, levels = c(0,1,2,3,4,5,6),ordered=T)
+MergedSurvey$factorStrict <- factor(MergedSurvey$factorStrict, levels = c(0,1,2,3,4,5,6),ordered=T)
 ```
 
 
 
 ```{r}
+#ran a simple lm to see the relationship between race and mental health
 lm(MentalHealthScoreLeniant ~ Race*Year, MergedSurvey) %>% summary
 lm(MentalHealthScoreLeniant ~ Race+Year, MergedSurvey) %>% summary
 ```
 
 
 ```{r}
-lm(Treatment ~ Race*Year, MergedSurvey) %>% summary()
-lm(Treatment ~ Schooling*Year, MergedSurvey) %>% summary()
-lm(Treatment ~ Veteran*Year, MergedSurvey) %>% summary()
-lm(Treatment ~ AgeCat*Year, MergedSurvey) %>% summary()
-lm(Treatment ~ Marriage*Year, MergedSurvey) %>% summary()
+#ran a simple lm to see the relationship between race, schooling, veteran status, age, and marriage and treatment group
+lm(Treatment ~ Race*Year, MergedSurvey) %>% summary() #race model
+lm(Treatment ~ Schooling*Year, MergedSurvey) %>% summary() #education model
+lm(Treatment ~ Veteran*Year, MergedSurvey) %>% summary() #veteran model
+lm(Treatment ~ AgeCat*Year, MergedSurvey) %>% summary() #Age model
+lm(Treatment ~ Marriage*Year, MergedSurvey) %>% summary() #Marriage model
 ```
 
 
 ```{r}
-
-lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment, MergedSurvey) %>% summary()
-lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %>% summary()
-lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary()
-lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %>% summary()
+#Run linear models to look at relaationships between variables and strict mental health score
+lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment, MergedSurvey) %>% summary() #Year and Treatment, some redundant variables in there
+lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %>%  summary() # Year, treatment, race, and education
+lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage, MergedSurvey) %>% summary() #Year, treatment, race, education, age, and marriage 
+lm(MentalHealthScoreStrict~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %>% summary() #year, treatment, race, education, age
 ```
 
 ```{r}
-lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment, MergedSurvey) %>% summary()
-lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %>% summary()
-lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage + Veteran, MergedSurvey) %>% summary()
-lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %>% summary()
+#Run linear models to look at relaationships between variables and leniant mental health score
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment, MergedSurvey) %>% summary() #Year and Treatment, some redundant variables in there
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling, MergedSurvey) %>% summary() # Year, treatment, race, and education
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat + Marriage + Veteran, MergedSurvey) %>% summary() #Year, treatment, race, education, age, marriage, and veteran
+lm(MentalHealthScoreLeniant~Year + Treatment +Year*Treatment + Race + Schooling + AgeCat, MergedSurvey) %>% summary()#year, treatment, race, education, age
 ```
 
 
 ```{r}
-MergedSurvey %>% ggplot(aes(x=MentalHealthScoreStrict, color=Year)) +
-  geom_density(na.rm=T, n=7) +
-  facet_wrap(~Treatment)
-MergedSurvey %>% ggplot(aes(x=MentalHealthScoreLeniant, color=Year)) +
-  geom_density(na.rm=T, n = 7) +
-  facet_wrap(~Treatment) + ggtitle("Box Plots of Mental Health Scores (0==Control, 1==Treatment)")
+#created plots that compare changes in mental health scores for the strict and leniant interpretations of the mental health scores
+MergedSurvey %>% ggplot(aes(x=MentalHealthScoreStrict)) +
+  geom_bar(na.rm=T) +
+  facet_wrap(vars(Year,Treatment))
+MergedSurvey %>% ggplot(aes(x=MentalHealthScoreLeniant)) +
+  geom_bar(na.rm=T) +
+  facet_wrap(vars(Year,Treatment))
 ```
 
 ```{r}
+#Our Diff-in-diff model, but LM
 lm(MentalHealthScoreLeniant ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey) %>% summary()
 ```
 
 
 ```{r}
-leniantOLog <- polr(factorLeniant ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, Hess =T)
-strictOLog <-polr(factorStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, Hess =T)
+#Ordered logistic regresion using polr from the MASS package, not what we ended up going with
+leniantOLog <- polr(factorLeniant ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, Hess =T) #the ordinal model for leniant interpretation
+strictOLog <-polr(factorStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, MergedSurvey, Hess =T) #the ordinal modelfor the strict interpretation
 ```
 ```{r}
+#Summary of the models
 summary(leniantOLog)
 summary(strictOLog)
 ```
 
 ```{r}
+#created a function to with lgoistic distribution to run the ordinal logistic regression, don't think we went with this on either
 sf <- function(y) {
   c('Y>=0' = qlogis(mean(y >= 0)),
     'Y>=1' = qlogis(mean(y >= 1)),
@@ -519,14 +554,30 @@ cbind((s[,5]-s[,4]), (s[,6] - s[,5]), (s[,7]-s[,6]) ,(s[,8]-s[,7]))
 ```
 
 ```{r}
+#This was a plot of logits to test some assumption about the variables, or maybe to veryify results? but the plot was basically unreadable, but we could come back to this
 plot(s, which=1:7, pch=1:7, xlab='logit', main=' ', xlim=range(s[,4:7]))
 ```
 ```{r}
+#Created separate variables for each level of the ordinal logistic regression
 MergedSurvey <- MergedSurvey %>%
-  mutate(Y1 =as.factor(if_else(factorLeniant >=1, 1,0 )), Y2=as.factor(if_else(factorLeniant >=2, 1,0 )), Y3 = as.factor(if_else(factorLeniant >=3, 1,0 )), Y4 = as.factor(if_else(factorLeniant >=4, 1,0 )), Y5 =as.factor(if_else(factorLeniant >=5, 1,0 )), Y6=as.factor(if_else(factorLeniant >=6, 1,0 )))
+  mutate(Y1 =as.factor(if_else(factorLeniant >=1, 1,0 )), 
+         Y2=as.factor(if_else(factorLeniant >=2, 1,0 )), 
+         Y3 = as.factor(if_else(factorLeniant >=3, 1,0 )), 
+         Y4 = as.factor(if_else(factorLeniant >=4, 1,0 )), 
+         Y5 =as.factor(if_else(factorLeniant >=5, 1,0 )), 
+         Y6=as.factor(if_else(factorLeniant >=6, 1,0 )))
+#Created numerical versions to be extra safe
+MergedSurvey <- MergedSurvey %>%
+  mutate(Y1num =if_else(Y1=="1",1,0), 
+         Y2num=if_else(Y2=="1",1,0), 
+         Y3num = if_else(Y3=="1",1,0), 
+         Y4num = if_else(Y4=="1",1,0), 
+         Y5num =if_else(MergedSurvey$Y1=="1",1,0), 
+         Y6num=if_else(Y6=="1",1,0))
 ```
 
 ```{r}
+#This is the full logistic modeling with logical statements to create the binary y variable
 s1<-summary(glm((factorLeniant >=1) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
 s2<-summary(glm((factorLeniant >=2) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
 s3<-summary(glm((factorLeniant >=3) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
@@ -536,6 +587,7 @@ s6<-summary(glm((factorLeniant >=6) ~ Year*Treatment + Year*Race + Year*Schoolin
 ```
 
 ```{r}
+#The same full logistic modeling but with the variable we created instead
 m1<-summary(glm(Y1 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
 m2<-summary(glm(Y2 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
 m3<-summary(glm(Y3 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
@@ -544,8 +596,29 @@ m5<-summary(glm(Y5 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ 
 m6<-summary(glm(Y6 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
 ```
 
+```{r}
+#The full modeling process, but linear models with the numerical mental health binaries
+lin1<-summary(lm(Y1num~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin2<-summary(lm(Y2num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin3<-summary(lm(Y3num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin4<-summary(lm(Y4num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin5<-summary(lm(Y5num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin6<-summary(lm(Y6num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+```
+
+```{r} 
+#reading the summaries out
+lin1
+lin2
+lin3
+lin4
+lin5
+lin6
+```
+
 
 ```{r}
+#manually create data frame with estimates and standard deviations, where 23 is the coefficient and 65 is the standard deviation
 factorResults <- data.frame(Values = c(m1$coefficients[23], m1$coefficients[23] + m1$coefficients[65], m1$coefficients[23] - m1$coefficients[65],
                                  m2$coefficients[23], m2$coefficients[23] + m2$coefficients[65], m2$coefficients[23] - m2$coefficients[65],
                                  m3$coefficients[23], m3$coefficients[23] + m3$coefficients[65], m3$coefficients[23] - m3$coefficients[65],
@@ -583,6 +656,6 @@ results <- data.frame(Values = c(s1$coefficients[23], s1$coefficients[23] + s1$c
 ggplot(data=results, aes(y=Values, x = Group, shape =type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(16,4))
 ggsave("results.png")
 
-ggplot(data=factorResults, aes(y=Values, x = Group, shape =type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(16,4))
+ggplot(data=factorResults, aes(y=exp(Values), x = Group, shape =type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(16,4))
 ```
 
