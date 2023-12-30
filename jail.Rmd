@@ -168,18 +168,20 @@ limitJail %>% ggplot(aes(x= DDate, y= `Jurisdiction Name`)) +
 
 ```{r}
 jailCap <- jailCap %>% mutate(Crowdedness = `ADP total`/`CAPACITY`)
+jailCap <- jailCap %>% mutate(CrowdednessCat = if_else(Crowdedness > 1, 1,0))
+jailCap <- jailCap %>% group_by(`Jurisdiction Name`) %>% mutate(Baseline = Crowdedness - Crowdedness[1])
 ```
 
 
 ```{r}
-jailCap %>% ggplot(aes(x= DDate.x, y= Crowdedness)) +
-  geom_line() + facet_wrap(~`Jurisdiction Name`) + geom_hline(yintercept=1, color="red")
+jailCap %>% ggplot() + geom_smooth(aes(x =DDate.x, y=Crowdedness, weight=`ADP total`)) +
+  geom_line(aes(x= DDate.x, y= Crowdedness, color= `Jurisdiction Name`)) + geom_hline(yintercept=1, color="red") + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2)
 ```
 
 
 ```{r}
 jail %>% ggplot(aes(x= DDate, y= `ADP total`, color= `Jurisdiction Name`)) +
-  geom_line()
+  geom_line() + geom_vline(xintercept=2011+10/12, color ="black", linetype=2)+ geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2)
 ```
 ```{r}
 cols= c("Average Daily Jail Population and Releases because of Overcrowding"= "purple" , "Average Daily Jail Population"="red", "Number of Releases because of Overcrowding"="blue")
@@ -187,16 +189,41 @@ total %>% ggplot() + geom_line(aes(x=DDate, y= `ADP total`, color="Average Daily
 ```
 ```{r}
 cols= c("Average Daily Jail Population"="red", "Number of Releases because of Overcrowding"="blue")
-total %>% ggplot() + geom_line(aes(x=DDate, y= `ADP total`, color="Average Daily Jail Population")) + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2)+ ylim(c(0,110000)) + geom_line(aes(x=DDate, y=`Releases from Overcrowding`, colour = "Number of Releases because of Overcrowding")) + labs(title = "California Monthly Jail Population", x= "Date", y="Number of People", colour="Legend") + scale_colour_manual(values=cols) + geom_label(aes(x=2009+9.5/12, y= 110000, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 110000, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 110000, label="AB 2499")) +theme_bw()
-```
-```{r}
-
-capTotal <- jailCap %>% group_by(DDate.x) %>% summarise_if(is.numeric, sum, na.rm=T)
-
+total %>% ggplot() + geom_line(aes(x=DDate, y= `ADP total`, color="Average Daily Jail Population")) + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2)+ ylim(c(0,110000)) + geom_line(aes(x=DDate, y=`Releases from Overcrowding`, colour = "Number of Releases because of Overcrowding")) + labs(title = "California Monthly Jail Population", x= "Date", y="Number of People", colour="Legend") + scale_colour_manual(values=cols) + geom_label(aes(x=2009+9.5/12, y= 110000, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 100000, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 90000, label="AB 2499")) +theme_bw()
+ggsave("calJail.png")
 ```
 
 ```{r}
-capTotal %>% ggplot(aes(x= DDate.x, y= `ADP total`/`CAPACITY`)) +geom_line() + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2) + geom_hline(yintercept = 1, color="red") + labs(title = "California Monthly Jail Crowdedness", x= "Date", y="% of Capacity Used by all Jails") + 
+
+capTotalSimple <- jailCap %>% group_by(DDate.x) %>% summarise_if(is.numeric, sum, na.rm=T)
+
+```
+
+```{r}
+capTotalSimple %>% ggplot(aes(x= DDate.x, y= `ADP total`/`CAPACITY`)) +geom_line() + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2) + geom_hline(yintercept = 1, color="red") + labs(title = "California Monthly Jail Crowdedness", x= "Date", y="% of Capacity Used by all Jails") + 
   scale_y_continuous(labels = scales::percent) + theme_bw()+ geom_label(aes(x=2009+9.5/12, y= 1.10, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 1.10, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 1.10, label="AB 2499")) +theme_bw()
+capTotalSimple  %>% ggplot(aes(x= DDate.x, y= `Mental health cases opened last day of month`)) +geom_line() + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2) + labs(title = "California Monthly Jail Mental Health Cases", x= "Date", y="# of new mental health cases") + theme_bw()+ geom_label(aes(x=2009+9.5/12, y= 1.10, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 1.10, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 1.10, label="AB 2499")) +theme_bw() 
+```
+
+```{r}
+
+capTotal <- jailCap %>% group_by(DDate.x, CrowdednessCat) %>% summarise_if(is.numeric, sum, na.rm=T) %>% filter(CrowdednessCat==1)
+
+```
+
+```{r}
+capTotal %>% ggplot(aes(x= DDate.x, y= `ADP total`)) +geom_line() + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2) + labs(title = "California Monthly Jail Crowdedness", x= "Date", y="% of Capacity Used by all Jails") + theme_bw()+ geom_label(aes(x=2009+9.5/12, y= 1.10, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 1.10, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 1.10, label="AB 2499")) +theme_bw()
+```
+```{r}
+
+capTotal <- jailCap %>% group_by(DDate.x, CrowdednessCat) %>% summarise_if(is.numeric, sum, na.rm=T) %>% filter(!is.na(CrowdednessCat))
+
+```
+
+```{r}
+capTotal %>% ggplot(aes(x= DDate.x, y= `ADP total`)) +geom_line() + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2) + labs(title = "California Monthly Jail Crowdedness", x= "Date", y="% of Capacity Used by all Jails") + theme_bw()+ geom_label(aes(x=2009+9.5/12, y= 1.10, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 1.10, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 1.10, label="AB 2499")) +theme_bw() + facet_wrap(~CrowdednessCat)
+```
+```{r}
+capTotal %>% ggplot(aes(x= DDate.x, y= `Mental health cases opened last day of month`)) +geom_line() + geom_vline(xintercept=2011+10/12, color ="black", linetype=2) + geom_vline(xintercept=2009+9.5/12, color ="black", linetype=2) +geom_vline(xintercept=2014 + 9/12, color ="black", linetype=2) + labs(title = "California Monthly Jail Crowdedness", x= "Date", y="% of Capacity Used by all Jails") + theme_bw()+ geom_label(aes(x=2009+9.5/12, y= 1.10, label="SB 18 X3")) + geom_label(aes(x=2011+10/12, y= 1.10, label="Realignment")) + geom_label(aes(x=2014 + 9/12, y= 1.10, label="AB 2499")) +theme_bw() + facet_wrap(~CrowdednessCat)
 ```
 
