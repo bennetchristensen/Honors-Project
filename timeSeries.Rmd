@@ -67,6 +67,7 @@ ggplot(data = longShort %>% filter(State=="CALIFORNIA"), aes(y= Number/93000, x 
   theme_bw() + theme(plot.title = element_text(hjust = 0.5))
 ggsave("CalPopChange.png")
 ```
+
 ```{r}
 # Plot 1: 
 ggplot(data = longShort %>% filter(State=="TEXAS" | State == "MISSOURI" | State=="DELAWARE" | State == "WISCONSIN" | State == "NEW JERSEY" | State == "ALABAMA"), aes(y= Number/start, x = year)) + geom_line() + facet_wrap(~State) + geom_hline(yintercept=1, color="Red") + geom_vline(xintercept=2010, color="Red") + scale_y_continuous(labels = scales::percent)+ labs(title = "Change in Control State Prison Populations", y="Percent Change") + theme_bw() + theme(plot.title = element_text(hjust = 0.5))
@@ -179,7 +180,17 @@ dif<-data.frame(Outcome=c(1,4,4,5), Group = c("Exposed", "Exposed", "Control", "
 ```
 
 ```{r}
-ftggplot(data=dif, aes(x=Time, y = Outcome, group=Group, shape =Group)) + geom_line() + geom_point(size=8, color="Red") + geom_abline(intercept=1, slope=0.1, linetype="dashed") + labs(title = "Difference in Difference") + theme_bw() + theme(plot.title = element_text(hjust = 0.5))
+ggplot(data=dif %>% filter(Group=="Exposed"), aes(x=Time, y = Outcome, group=Group, shape =Group)) + geom_line() + geom_point(size=8, color="Red") +  labs(title = "Difference in Differences") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_y_continuous(limits=c(1,5)) + scale_shape_manual(values=17)
+ggsave("diffdiff1.png")
+```
+
+```{r}
+ggplot(data=dif %>% filter(Group=="Exposed") , aes(x=Time, y = Outcome, group=Group, shape =Group)) + geom_line() + geom_point(size=8, color="Red") + geom_abline(intercept=1, slope=0.1, linetype="dashed") +  labs(title = "Difference in Differences") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_y_continuous(limits=c(1,5))+ scale_shape_manual(values=17)
+ggsave("diffdiff2.png")
+```
+
+```{r}
+ggplot(data=dif, aes(x=Time, y = Outcome, group=Group, shape =Group)) + geom_line() + geom_point(size=8, color="Red") + geom_abline(intercept=1, slope=0.1, linetype="dashed") + labs(title = "Difference in Differences") + theme_bw() + theme(plot.title = element_text(hjust = 0.5))
 ggsave("diffdiff.png")
 ```
 
