@@ -1,108 +1,475 @@
 ```{r}
-library(dplyr)
-library(rvest)
-library(rlang)
-library(furrr)
-library(doParallel)
-library(foreach)
-library(stringr)
-library(xml2)
-```
-
-
-```{r}
-Sys.setenv(http_proxy="http://proxyserver:port") #proxy address so I can web scrape
+library(tidyverse)
+library(dagitty)
+library(did)
+library(MASS)
+library(broom)
+library(Hmisc)
 ```
 
 ```{r}
-#This chunk and the on bellow it helps set up parallel processing. If you have have enough time in theory this does not need to be done in parallel
-parallel::detectCores()
-n.cores <- parallel::detectCores() - 1
-```
-```{r}
-#create the cluster
-my.cluster <- parallel::makeCluster(
-  n.cores, 
-  type = "PSOCK"
-  )
-
-#check cluster definition (optional)
-print(my.cluster)
-
-#register it to be used by %dopar%
-doParallel::registerDoParallel(cl = my.cluster)
-
-#check if it is registered (optional)
-foreach::getDoParRegistered()
-
-#how many workers are available? (optional)
-foreach::getDoParWorkers()
+#Read in data from Annual Survey of Jails: Jail-Level Data, 2011
+jail2011 <- read_tsv("33722-0001-Data.tsv")
 ```
 
+```{r}
+#Read in data from Survey of Prison Inmates, United States, 2016
+load(file="37692-0002-Data.rda")
+```
+```{r}
+#Read in data from Survey of Inmates in State and Federal Correctional Facilities, [United States], 2004
+load(file="04572-0002-Data.rda")
+```
+```{r}
+#Count the number of observations that are NA for mental health questions
+sum(is.na(da04572.0002$V2379)) 
+sum(is.na(da37692.0002$V1179))
+```
+  
+```{r}
+#Selects the variables of interest, state, age, sex, race, mental health questions, veteran status and marital status. I reclassify I think all of them so I won't elaborate here
+work2004 <- da04572.0002 %>% dplyr::select("V1057", "V0014","V0018","V0029","V0030","V0031","V0032","V0033", "V0034", "V0059", "V0058", "V1740", "V1857","V2272", "V2273","V2386", "V2387", "V2388", "V2392", "V2394", "V2395")
+work2016 <- da37692.0002 %>% dplyr::select("V0772", "RV0002","RV0003", "RV0008", "RV0051", "RV0054", "V1145", "V1201", "V1202", "V1179", "V1180", "V1181", "V1182", "V1183", "V1184")
+```
+
+```{r}
+#Creating Race Categorical for 2004 based on classification in 2016
+work2004 <- work2004 %>% mutate(Race = as.factor(case_when(
+  if_else(is.na(work2004$V0029 == "(1) White")==T, 0,1) + 
+    if_else(is.na(work2004$V0030 == "(2) Black or African American")==T,0,1) + 
+    if_else(is.na(work2004$V0031 == "(3) American Indian or Alaska Native")==T,0,1) + 
+    if_else(is.na(work2004$V0032 == "(4) Asian")==T, 0,1) > 1 & work2004$V0018 == "(2) No" ~ "(6) 6 = 2+ Races (NH)",
+  work2004$V0029 == "(1) White" & work2004$V0018 == "(2) No" ~ "(1) 1 = White (NH)",
+  work2004$V0030 == "(2) Black or African American" & work2004$V0018 == "(2) No" ~ "(2) 2 = Black (NH)",
+  work2004$V0018 == "(1) Yes" ~ "(3) 3 = Hispanic",
+  work2004$V0031 == "(3) American Indian or Alaska Native" & work2004$V0018 == "(2) No" ~ "(4) 4 = American Indian/Alaska Native (NH)",
+  work2004$V0032 == "(4) Asian" | work2004$V0033 == "(5) Native Hawaiian or other Pacific Islander" & work2004$V0018 == "(2) No" ~ "(5) 5 = Asian/Native Hawaiian/Other Pacific Islander (NH)",
+  work2004$V0034 == "(6) All other races" & work2004$V0018 == "(2) No" ~ "(8) 8 = Other (NH)",
+  TRUE ~ "(9) 9 = Uncategorized - Missing"
+)))
+```
+
+```{r}
+#Creating Age Categorical for 2004 based on classification in 2016
+work2004 <- work2004 %>% mutate(AgeCat = as.factor(case_when(
+  between(work2004$V0014, 18, 24) ~ "(01) 1 = 18-24",
+  between(work2004$V0014, 25, 34) ~ "(02) 2 = 25-34",
+  between(work2004$V0014, 35, 44) ~ "(03) 3 = 35-44",
+  between(work2004$V0014, 45, 54) ~ "(04) 4 = 45-54",
+  between(work2004$V0014, 55, 64) ~ "(05) 5 = 55-64",
+  work2004$V0014 > 64 ~ "(06) 6 = 65 or Older",
+  TRUE ~ "(99) 99 = Blank"
+)))
+```
+
+```{r}
+#Creating Veteran for 2004 based on classification in 2016
+work2004 <-work2004 %>% mutate(Veteran = as.factor(case_when(
+  work2004$V0059 == "(2) No" ~ "(02) 2 = Non-veteran",
+  work2004$V0059 == "(1) Yes" ~"(01) 1 = Veteran",
+  TRUE ~ "(98) 98 = DK/REF"
+)))
+```
+
+```{r}
+#Creating Marital Status for 2004 based on classification in 2016
+work2004 <-work2004 %>% mutate(Marriage = as.factor(case_when(
+  work2004$V0058 == "(5) Never Married" ~ "(05) 5 = Never married",
+  work2004$V0058 == "(1) Married" ~"(01) 1 = Married",
+  work2004$V0058 == "(4) Separated (Not because of incarceration)" ~"(03) 3 = Separated",
+  work2004$V0058 == "(3) Divorced" ~"(04) 4 = Divorced",
+  work2004$V0058 == "(2) Widowed" ~"(02) 2 = Widowed",
+  TRUE ~ "(98) 98 = DK/REF"
+)))
+```
+
+```{r}
+#creating a numerical school year to make creating categories easier
+work2004 <- work2004 %>% mutate(numericSchool = as.numeric(gsub("[[:space:]]", "",gsub("[\\(\\)]", "", regmatches(work2004$V1740, gregexpr("\\([[:digit:]]*?\\)", work2004$V1740))))))
+
+
+#Creating Marital Status for 2004 based on classification in 2016. For the sake of this variable I am assuming that the highest grade of school attended is the highest grade of school completed. We just can't know
+work2004 <-work2004 %>% mutate(Schooling = as.factor(case_when(
+  (work2004$numericSchool < 12) ~ "(1) 1 = Less Than High School",
+  work2004$numericSchool == 12 ~ "(2) 2 = High School Graduate",
+  between(work2004$numericSchool,13,14) ~ "(3) 3 = Some College",
+  between(work2004$numericSchool, 16,18) ~ "(4) 4 = College Degree or More",
+  TRUE ~ "(9) 9 = Missing"
+)))
+```
+```{r}
+#create the medbefore variable so the two surveys line up
+work2004 <-work2004 %>% mutate(MedBefore = as.factor(case_when(
+  work2004$V2272 == "(1) Yes" ~ "(1) 1 = Yes",
+  work2004$V2272 == "(2) No" ~ "(2) 2 = No ",
+  work2004$V2272 == "(8) Refused" ~ "(-1) -1 = Don't Know",
+  work2004$V2272 == "(7) Don't know" ~ "(-2) -2 = Refusal",
+  TRUE ~ "(9) 9 = Missing"
+)))
+```
+
+```{r}
+#create the medAfter variable so the two surveys line up
+work2004 <-work2004 %>% mutate(MedAfter = as.factor(case_when(
+  work2004$V2273 == "(1) Yes" ~ "(1) 1 = Yes",
+  work2004$V2273 == "(2) No" ~ "(2) 2 = No ",
+  work2004$V2273 == "(8) Refused" ~ "(-1) -1 = Don't Know",
+  work2004$V2273 == "(7) Don't know" ~ "(-2) -2 = Refusal",
+  TRUE ~ "(9) 9 = Missing"
+)))
+```
+
+```{r}
+#Create incomeCat Variable, don't think we ever used this, not much data and too many problems with not knowing the year for inflation reasons and not knowing where they live to adjust cost of living, and they can't access that income in prison anyways
+work2004 <-work2004 %>% mutate(IncomeCat = as.factor(case_when(
+  work2004$V1857 == "(1) Yes" ~ "(1) 1 = Yes",
+  work2004$V2273 == "(2) No" ~ "(2) 2 = No ",
+  work2004$V2273 == "(8) Refused" ~ "(-1) -1 = Don't Know",
+  work2004$V2273 == "(7) Don't know" ~ "(-2) -2 = Refusal",
+  TRUE ~ "(9) 9 = Missing"
+)))
+```
+
 
 
 ```{r}
-#this is an example of a data scrape request. This is specifically one company and one state over a period of time. My project specifically focused on Arms contractors in MD, but to adapt this to hospitals all I would need to do is change the pasted url.
-generaldynamicsMD <- foreach(i = 1994:2022, .combine = 'rbind') %dopar% {
-  library(rvest)
-  library(dplyr)
-  readUrl <- function(url) {
-    out <- tryCatch(
-        {
-            read_html(paste(url, sep="")) %>% html_element(xpath='//*[(@id = "csvLink")]') %>% html_attr("href")
-        },
-        error=function(cond) {
-            return(NA)
-        },
-        warning=function(cond) {
-            return(NA)
-        },
-        finally={
-        }
-    )    
-    return(out)
+#I believe this is code from daggity. I haven't used it but it could be useful to
+testImplications <- function( covariance.matrix, sample.size ){
+	library(ggm)
+	tst <- function(i){ pcor.test( pcor(i,covariance.matrix), length(i)-2, sample.size )$pvalue }
+tos <- function(i){ paste(i,collapse=" ") }
+implications <- list(c("E: California Incarceration","Income"),
+		c("E: California Incarceration","Education"),
+		c("E: California Incarceration","Visitation/Isolation"),
+		c("E: California Incarceration","Marital Status"),
+		c("E: California Incarceration","Veteran Status"),
+		c("E: California Incarceration","Preexisting Condition","Education","Smoking/Drug/Alcohol Use","Race"),
+		c("E: California Incarceration","Age"),
+		c("E: California Incarceration","Physical Activity"),
+		c("Health Care Access","Income"),
+		c("Health Care Access","Education"),
+		c("Health Care Access","Visitation/Isolation"),
+		c("Health Care Access","Marital Status"),
+		c("Health Care Access","Veteran Status"),
+		c("Health Care Access","Preexisting Condition","Education","Smoking/Drug/Alcohol Use","Race"),
+		c("Health Care Access","Age"),
+		c("Health Care Access","Physical Activity"),
+		c("Health Care Access","Prison Infrastructure","E: California Incarceration"),
+		c("Smoking/Drug/Alcohol Use","Income","Education"),
+		c("Smoking/Drug/Alcohol Use","Visitation/Isolation","Marital Status"),
+		c("Smoking/Drug/Alcohol Use","Visitation/Isolation","Age"),
+		c("Smoking/Drug/Alcohol Use","Visitation/Isolation","Education"),
+		c("Smoking/Drug/Alcohol Use","Marital Status","Age"),
+		c("Smoking/Drug/Alcohol Use","Marital Status","Education"),
+		c("Smoking/Drug/Alcohol Use","Veteran Status"),
+		c("Smoking/Drug/Alcohol Use","Age","Education"),
+		c("Smoking/Drug/Alcohol Use","Physical Activity"),
+		c("Smoking/Drug/Alcohol Use","Prison Infrastructure","E: California Incarceration"),
+		c("Income","Race"),
+		c("Income","Visitation/Isolation","Marital Status"),
+		c("Income","Visitation/Isolation","Age"),
+		c("Income","Visitation/Isolation","Education"),
+		c("Income","Marital Status","Age"),
+		c("Income","Marital Status","Education"),
+		c("Income","Veteran Status"),
+		c("Income","Age","Education"),
+		c("Income","Physical Activity"),
+		c("Income","Prison Infrastructure"),
+		c("Race","Education"),
+		c("Race","Visitation/Isolation"),
+		c("Race","Marital Status"),
+		c("Race","Veteran Status"),
+		c("Race","Age"),
+		c("Race","Physical Activity"),
+		c("Race","Prison Infrastructure","E: California Incarceration"),
+		c("Education","Visitation/Isolation","Marital Status"),
+		c("Education","Visitation/Isolation","Age"),
+		c("Education","Marital Status","Age"),
+		c("Education","Veteran Status"),
+		c("Education","Physical Activity"),
+		c("Education","Prison Infrastructure"),
+		c("Visitation/Isolation","Veteran Status"),
+		c("Visitation/Isolation","Preexisting Condition","Age"),
+		c("Visitation/Isolation","Preexisting Condition","Marital Status"),
+		c("Visitation/Isolation","Age","Marital Status"),
+		c("Visitation/Isolation","Physical Activity"),
+		c("Visitation/Isolation","Prison Infrastructure"),
+		c("Marital Status","Veteran Status"),
+		c("Marital Status","Preexisting Condition","Age"),
+		c("Marital Status","Physical Activity"),
+		c("Marital Status","Prison Infrastructure"),
+		c("Veteran Status","Age"),
+		c("Veteran Status","Physical Activity"),
+		c("Veteran Status","Prison Infrastructure"),
+		c("Preexisting Condition","Physical Activity"),
+		c("Preexisting Condition","Prison Infrastructure","E: California Incarceration"),
+		c("Preexisting Condition","Prison Infrastructure","Race","Education","Smoking/Drug/Alcohol Use"),
+		c("Age","Physical Activity"),
+		c("Age","Prison Infrastructure"),
+		c("Physical Activity","Prison Infrastructure"))
+	data.frame( implication=unlist(lapply(implications,tos)),
+		pvalue=unlist( lapply( implications, tst ) ) )
+
 }
-  y=readUrl(paste('https://www.fpds.gov/ezsearch/fpdsportal?indexName=awardfull&templateName=1.5.3&s=FPDS.GOV%252525252525252525252525252525252BtemplateName1.5.2%252525252525252525252525252525252BindexNameawardfull&q=ULTIMATE_UEI_NAME%3A%22GENERAL+DYNAMICS%22+CONTRACT_FISCAL_YEAR%3A%22',as.character(i),'%22+VENDOR_ADDRESS_STATE_CODE%3A%22MD%22&x=24&y=13',sep=""))
-  if (is.na(y)==FALSE) { year_x <- read.csv(paste("https://www.fpds.gov/ezsearch/fpdsportal",y, sep=""))
-  year_name <- paste("year",i, sep = "")
-  assign(year_name,year_x) }
-}
 ```
 
 ```{r}
-prison <- foreach(i = 1979:2016, .combine = 'rbind') %dopar% {
-  library(rvest)
-  library(dplyr)
-  readUrl <- function(url) {
-    out <- tryCatch(
-        {
-            read_html(paste(url, sep="")) %>% html_element(xpath='//*[(@id = "csvLink")]') %>% html_attr("href")
-        },
-        error=function(cond) {
-            return(NA)
-        },
-        warning=function(cond) {
-            return(NA)
-        },
-        finally={
-        }
-    )    
-    return(out)
-}
-  y=readUrl(paste('https://www.fpds.gov/ezsearch/fpdsportal?indexName=awardfull&templateName=1.5.3&s=FPDS.GOV%2525252525252525252525252525252525252525252525252525252525252BtemplateName1.5.2%2525252525252525252525252525252525252525252525252525252525252BindexNameawardfull&q=CONTRACTING_AGENCY_NAME%3A%22FEDERAL+PRISON+SYSTEM%22+PRODUCT_OR_SERVICE_CODE%3A%22Q201%22+CONTRACT_FISCAL_YEAR%3A%22',as.character(i),'%22&x=0&y=0',sep=""))
-  if (is.na(y)==FALSE) { year_x <- read.csv(paste("https://www.fpds.gov/ezsearch/fpdsportal",y, sep=""))
-  year_name <- paste("year",i, sep = "")
-  assign(year_name,year_x) }
-}
-```
+#Convert the mental health screener questions to numerical binary so that I can sum them to create the mental health scores
 
-
-
-```{r}
-parallel::stopCluster(cl = my.cluster)
+work2004 <- work2004 %>% mutate(NervousBin = case_when(
+  work2004$V2386 == "(1) Yes" ~ 1,
+  work2004$V2386 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(HopelessBin = case_when(
+  work2004$V2392 == "(1) Yes" ~ 1,
+  work2004$V2392 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(RestlessBin = case_when(
+  work2004$V2388 == "(1) Yes" ~ 1,
+  work2004$V2388 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(DepressBin = case_when(
+  work2004$V2395 == "(1) Yes" ~ 1,
+  work2004$V2395 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(EffortBin = case_when(
+  work2004$V2387 == "(1) Yes" ~ 1,
+  work2004$V2387 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(WorthlessBin = case_when(
+  work2004$V2394 == "(1) Yes" ~ 1,
+  work2004$V2394 == "(2) No" ~ 0
+))
+work2004 <-work2004 %>% mutate(MentalHealthScorelenient = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)
 ```
 
 ```{r}
-write.csv(prison, file = "prisons.csv")
+#Convert the mental health screaner responses to binary, with some to all of the time being 1 and a little to none of the time being zero, and then summing them to create lenient health score
+
+work2016 <-work2016 %>% mutate(NervousBin = case_when(
+  work2016$V1179 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1179 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1179 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1179 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1179 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(HopelessBin = case_when(
+  work2016$V1180 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1180 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1180 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1180 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1180 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(RestlessBin = case_when(
+  work2016$V1181 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1181 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1181 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1181 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1181 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(DepressBin = case_when(
+  work2016$V1182 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1182 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1182 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1182 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1182 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(EffortBin = case_when(
+  work2016$V1183 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1183 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1183 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1183 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1183 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(WorthlessBin = case_when(
+  work2016$V1184 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1184 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1184 == "(3) 3 = Some of the Time" ~ 1,
+  work2016$V1184 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1184 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(MentalHealthScorelenient = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)
 ```
 
+
+```{r}
+#Convert the mental health screener questions to numerical binary so that I can sum them to create the mental health scores
+
+work2004 <- work2004 %>% mutate(NervousBin = case_when(
+  work2004$V2386 == "(1) Yes" ~ 1,
+  work2004$V2386 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(HopelessBin = case_when(
+  work2004$V2392 == "(1) Yes" ~ 1,
+  work2004$V2392 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(RestlessBin = case_when(
+  work2004$V2388 == "(1) Yes" ~ 1,
+  work2004$V2388 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(DepressBin = case_when(
+  work2004$V2395 == "(1) Yes" ~ 1,
+  work2004$V2395 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(EffortBin = case_when(
+  work2004$V2387 == "(1) Yes" ~ 1,
+  work2004$V2387 == "(2) No" ~ 0
+))
+work2004 <- work2004 %>% mutate(WorthlessBin = case_when(
+  work2004$V2394 == "(1) Yes" ~ 1,
+  work2004$V2394 == "(2) No" ~ 0
+))
+work2004 <-work2004 %>% mutate(MentalHealthScoreStrict = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)
+```
+
+
+```{r}
+#Convert the mental health screaner responses to binary, with most to all of the time being 1 and a some to none of the time being zero, and then summing them to create strict health score
+
+work2016 <-work2016 %>% mutate(NervousBin = case_when(
+  work2016$V1179 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1179 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1179 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1179 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1179 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(HopelessBin = case_when(
+  work2016$V1180 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1180 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1180 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1180 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1180 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(RestlessBin = case_when(
+  work2016$V1181 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1181 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1181 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1181 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1181 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(DepressBin = case_when(
+  work2016$V1182 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1182 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1182 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1182 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1182 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(EffortBin = case_when(
+  work2016$V1183 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1183 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1183 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1183 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1183 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(WorthlessBin = case_when(
+  work2016$V1184 == "(1) 1 = All of the Time" ~ 1,
+  work2016$V1184 == "(2) 2 = Most of the Time"~ 1,
+  work2016$V1184 == "(3) 3 = Some of the Time" ~ 0,
+  work2016$V1184 == "(4) 4 = A Little of the Time" ~ 0,
+  work2016$V1184 == "(5) 5 = None of the Time" ~ 0
+))
+work2016 <-work2016 %>% mutate(MentalHealthScoreStrict = NervousBin + HopelessBin + RestlessBin + DepressBin + EffortBin + WorthlessBin  
+)
+```
+
+```{r}
+#create data frame for control states and California for the two surveys
+
+workCali2004 <- work2004 %>% filter(V1057=="CA") #2004 California
+workCali2016 <- work2016 %>% filter(V0772=="CA") #2016 Californa
+workCont2004 <- work2004 %>% filter(V1057=="TX" | V1057=="WI" | V1057=="MO" | V1057=="DE") #2004 Control
+workCont2016 <- work2016 %>% filter(V0772=="TX" | V0772=="WI" | V0772=="MO" | V0772=="DE") #2016 Control
+```
+
+
+```{r}
+#create a chart for each variable with the percent change of levels of the variables in California from 2004 to 2016
+
+cbind((workCali2004 %>% count(Race))[1],-(workCali2004 %>% count(Race))[2]/1757 + (workCali2016 %>% count(RV0003))[2]/1375) #Race chart
+cbind((workCali2004 %>% count(AgeCat))[1],-(workCali2004 %>% count(AgeCat))[2]/1757 + rbind((workCali2016 %>% count(RV0002))[2],0)/1375) #Age Chart
+cbind((workCali2004 %>% count(Veteran))[1],-(workCali2004 %>% count(Veteran))[2]/1757 + (workCali2016 %>% count(RV0008))[2]/1375) #Veteran Chart
+cbind((workCali2004 %>% count(Marriage))[1],-(workCali2004 %>% count(Marriage))[2]/1757 + rbind((workCali2016 %>% count(RV0051))[2],0)/1375) #Marriage Chart
+cbind((workCali2004 %>% count(Schooling))[1],-(workCali2004 %>% count(Schooling))[2]/1757 + (workCali2016 %>% count(RV0054))[2]/1375) #Education Chart
+```
+
+```{r}
+#create a chart for each variable with the percent change of levels of the variables in control states  from 2004 to 2016
+
+cbind((workCont2004 %>% count(Race))[1],-(workCont2004 %>% count(Race))[2]/2835 + (add_row(count(workCont2016, RV0003)[2]/3442, n=0, .before = 7))) #Race Chart
+cbind((workCont2004 %>% count(AgeCat))[1],-(workCont2004 %>% count(AgeCat))[2]/2835 + rbind((workCont2016 %>% count(RV0002))[2],0)/3442) #Age Chart
+cbind((workCont2004 %>% count(Veteran))[1],-(workCont2004 %>% count(Veteran))[2]/2835 + (rbind((workCont2016 %>% count(RV0008))[2],0)/3442)) #Veteran Chart
+cbind((workCont2004 %>% count(Marriage))[1],-(workCont2004 %>% count(Marriage))[2]/2835 + (workCont2016 %>% count(RV0051))[2]/3442) #Marriage Chart
+cbind((workCont2004 %>% count(Schooling))[1],-(workCont2004 %>% count(Schooling))[2]/2835 + (workCont2016 %>% count(RV0054))[2]/3442) #Education Chart
+```
+
+```{r}
+#creates a chart with the breakdown of how many people had what mental health scores in each year and group, one with total count and one with percent of the group
+
+#Count Chart
+MentalChart<-cbind((workCont2016 %>% count(MentalHealthScorelenient))[1],
+(workCont2004 %>% count(MentalHealthScorelenient))[2],
+(workCont2016 %>% count(MentalHealthScorelenient))[2],
+(workCali2004 %>% count(MentalHealthScorelenient))[2],
+(workCali2016 %>% count(MentalHealthScorelenient))[2]
+) 
+
+#Percent Chart
+colnames(MentalChart)[2:5] <- c("2004 Control", "2016 Control","2004 California", "2016 California")
+MentalChart
+MentalChartPerc<-cbind((workCont2016 %>% count(MentalHealthScorelenient))[1],
+(workCont2004 %>% count(MentalHealthScorelenient))[2]/2835,
+(workCont2016 %>% count(MentalHealthScorelenient))[2]/3442,
+(workCali2004 %>% count(MentalHealthScorelenient))[2]/1757,
+(workCali2016 %>% count(MentalHealthScorelenient))[2]/1375
+)
+
+#Rename Columns 
+colnames(MentalChartPerc)[2:5] <- c("2004 Control", "2016 Control","2004 California", "2016 California")
+MentalChartPerc
+```
+
+
+```{r}
+#Create variables for year and treatment group status (California = 1, Control =0)
+workCont2004 <- workCont2004 %>% mutate(Year = "2004", Treatment = 0)
+workCont2016 <- workCont2016 %>% mutate(Year = "2016", Treatment = 0)
+workCali2004 <- workCali2004 %>% mutate(Year = "2004", Treatment = 1)
+workCali2016 <- workCali2016 %>% mutate(Year = "2016", Treatment = 1)
+```
+
+```{r}
+#Select the matching named variables for all the data frames
+
+mergeCali2004 <- workCali2004 %>% dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScorelenient", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCont2004 <- workCont2004 %>% dplyr::select("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScorelenient", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCont2016 <- workCont2016 %>% dplyr::select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScorelenient", "MentalHealthScoreStrict", "Year", "Treatment")
+colnames(mergeCont2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScorelenient", "MentalHealthScoreStrict", "Year", "Treatment")
+mergeCali2016 <- workCali2016 %>% dplyr::select("V0772","RV0003","RV0002","RV0051", "RV0054", "RV0008", "MentalHealthScorelenient", "MentalHealthScoreStrict", "Year", "Treatment")
+colnames(mergeCali2016) <- c("V1057","Race","AgeCat","Marriage", "Schooling", "Veteran", "MentalHealthScorelenient", "MentalHealthScoreStrict", "Year", "Treatment")
+```
+
+```{r}
+#Merged all the data into one data frame
+MergedSurvey <- rbind(mergeCali2004, mergeCont2004, mergeCali2016, mergeCont2016)
+```
+```{r}
+#Removed NAs from the data frame
+MergedSurvey <- MergedSurvey %>% filter(Race != "(9) 9 = Uncategorized - Missing" & Schooling != "(9) 9 = Missing" & Marriage != "(98) 98 = DK/REF" & AgeCat != "(99) 99 = Blank" & Veteran != "(98) 98 = DK/REF" & is.na(MentalHealthScorelenient)==F)
+```
+
+```{r}
+#Dropped levels on covariates, I can't remember why but I think the levels were preventing the model from running. Also converted the mental health scores into factors
+MergedSurvey <- MergedSurvey %>% mutate(Race = droplevels(Race), 
+                                        Schooling = droplevels(Schooling),
+                                        Marriage = droplevels(Marriage), 
+                                        AgeCat= droplevels(AgeCat),
+                                        Veteran =droplevels(Veteran), 
+                                        factorlenient = as.factor(MentalHealthScorelenient), 
+                                        factorStrict = as.factor(MentalHealthScoreStrict))
+#Ordered the mental health score 
+MergedSurvey$factorlenient <- factor(MergedSurvey$factorlenient, levels = c(0,1,2,3,4,5,6),ordered=T)
+MergedSurvey$factorStrict <- factor(MergedSurvey$factorStrict, levels = c(0,1,2,3,4,5,6),ordered=T)
+```

@@ -1,0 +1,219 @@
+```{r}
+library(tidyverse)
+library(dagitty)
+library(did)
+library(MASS)
+library(broom)
+library(Hmisc)
+```
+
+
+```{r}
+#code I found on stack overflow to run the cleaning document even though its an rmd (maybe should make it a script instead of an rmd)
+source_rmd = function(file, ...) {
+  tmp_file = tempfile(fileext=".R")
+  on.exit(unlink(tmp_file), add = TRUE)
+  knitr::purl(file, output=tmp_file)
+  source(file = tmp_file, ...)
+}
+```
+
+```{r}
+#run the cleaning doc
+source_rmd("dataCleaning.Rmd")
+```
+
+```{r}
+#Created separate variables for each level of the ordinal logistic regression(lenient, which is what we used for the first analysis)
+MergedSurvey <- MergedSurvey %>%
+  mutate(Y1 =as.factor(if_else(factorlenient >=1, 1,0 )), 
+         Y2=as.factor(if_else(factorlenient >=2, 1,0 )), 
+         Y3 = as.factor(if_else(factorlenient >=3, 1,0 )), 
+         Y4 = as.factor(if_else(factorlenient >=4, 1,0 )), 
+         Y5 =as.factor(if_else(factorlenient >=5, 1,0 )), 
+         Y6=as.factor(if_else(factorlenient >=6, 1,0 )))
+#Created numerical versions to be extra safe
+MergedSurvey <- MergedSurvey %>%
+  mutate(Y1num =if_else(Y1=="1",1,0), 
+         Y2num=if_else(Y2=="1",1,0), 
+         Y3num = if_else(Y3=="1",1,0), 
+         Y4num = if_else(Y4=="1",1,0), 
+         Y5num =if_else(Y5=="1",1,0), 
+         Y6num=if_else(Y6=="1",1,0))
+```
+
+```{r}
+#Created separate variables for each level of the ordinal logistic regression(strict, because I want to compare)
+MergedSurvey <- MergedSurvey %>%
+  mutate(Y1strict = as.factor(if_else(factorStrict >=1, 1,0 )), 
+         Y2strict = as.factor(if_else(factorStrict >=2, 1,0 )), 
+         Y3strict = as.factor(if_else(factorStrict >=3, 1,0 )), 
+         Y4strict = as.factor(if_else(factorStrict >=4, 1,0 )), 
+         Y5strict = as.factor(if_else(factorStrict >=5, 1,0 )), 
+         Y6strict = as.factor(if_else(factorStrict >=6, 1,0 )))
+#Created numerical versions to be extra safe
+MergedSurvey <- MergedSurvey %>%
+  mutate(Y1numStrict =if_else(Y1strict=="1",1,0), 
+         Y2numStrict=if_else(Y2strict=="1",1,0), 
+         Y3numStrict = if_else(Y3strict=="1",1,0), 
+         Y4numStrict = if_else(Y4strict=="1",1,0), 
+         Y5numStrict =if_else(Y5strict=="1",1,0), 
+         Y6numStrict=if_else(Y6strict=="1",1,0))
+```
+
+```{r}
+#This is the full logistic modeling with logical statements to create the binary y variable
+s1<-summary(glm((factorlenient >=1) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s2<-summary(glm((factorlenient >=2) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s3<-summary(glm((factorlenient >=3) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s4<-summary(glm((factorlenient >=4) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s5<-summary(glm((factorlenient >=5) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+s6<-summary(glm((factorlenient >=6) ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+```
+
+
+```{r}
+#The full modeling process, but linear models with the numerical mental health binaries
+lin1<-summary(lm(Y1num~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey)) 
+lin2<-summary(lm(Y2num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin3<-summary(lm(Y3num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin4<-summary(lm(Y4num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin5<-summary(lm(Y5num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+lin6<-summary(lm(Y6num ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data = MergedSurvey))
+```
+
+```{r}
+#The same full logistic modeling but with the variable we created instead
+m1<-summary(glm(Y1 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey)) 
+m2<-summary(glm(Y2 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m3<-summary(glm(Y3 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m4<-summary(glm(Y4 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m5<-summary(glm(Y5 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+m6<-summary(glm(Y6 ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey))
+```
+
+```{r}
+#The full modeling process, but linear models with the numerical strict mental health binaries
+strictLin1<-summary(lm(Y1numStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data=MergedSurvey))
+strictLin2<-summary(lm(Y2numStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data=MergedSurvey))
+strictLin3<-summary(lm(Y3numStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data=MergedSurvey))
+strictLin4<-summary(lm(Y4numStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data=MergedSurvey))
+strictLin5<-summary(lm(Y5numStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data=MergedSurvey))
+strictLin6<-summary(lm(Y6numStrict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran, data=MergedSurvey))
+```
+
+```{r}
+#The same full logistic modeling but with the strict factor variable
+strict1<-glm(Y1strict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey)
+strict2<-glm(Y2strict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey)
+strict3<-glm(Y3strict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey)
+strict4<-glm(Y4strict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey)
+strict5<-glm(Y5strict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey)
+strict6<-glm(Y6strict ~ Year*Treatment + Year*Race + Year*Schooling + Year*AgeCat+ Year*Marriage + Year*Veteran,family= "binomial", data = MergedSurvey)
+```
+
+
+```{r}
+#manually create data frame with estimates and standard deviations, where 23 is the coefficient and 65 is the standard deviation, leaving this cause I realized its better to do it with tidy()
+factorResults <- data.frame(Values = c(m1$coefficients[23], m1$coefficients[23] + qnorm(0.975)*m1$coefficients[65], m1$coefficients[23] - qnorm(0.975)*m1$coefficients[65], 
+                                 m2$coefficients[23], m2$coefficients[23] + qnorm(0.975)*m2$coefficients[65], m2$coefficients[23] - qnorm(0.975)*m2$coefficients[65],
+                                 m3$coefficients[23], m3$coefficients[23] + qnorm(0.975)*m3$coefficients[65], m3$coefficients[23] - qnorm(0.975)*m3$coefficients[65],
+                                 m4$coefficients[23], m4$coefficients[23] + qnorm(0.975)*m4$coefficients[65], m4$coefficients[23] - qnorm(0.975)*m4$coefficients[65],
+                                 m5$coefficients[23], m5$coefficients[23] + qnorm(0.975)*m5$coefficients[65], m5$coefficients[23] - qnorm(0.975)*m5$coefficients[65],
+                                 m6$coefficients[23], m6$coefficients[23] + qnorm(0.975)*m6$coefficients[65], m6$coefficients[23] - qnorm(0.975)*m6$coefficients[65]),
+                      type= c("Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error"), Group = c(
+                        
+">= 1",">= 1",">= 1",
+                                                                                                         ">= 2",">= 2",">= 2",
+                                                                                                         ">= 3",">= 3",">= 3",
+                                                                                                         ">= 4",">= 4",">= 4",
+                                                                                                         ">= 5",">= 5",">= 5",
+                                                                                                         ">= 6",">= 6",">= 6"))
+
+```
+
+
+```{r}
+#manually create data frame with estimates and standard deviations, where 23 is the coefficient and 65 is the standard deviation, leaving this cause I realized its better to do it with tidy()
+results <- data.frame(Values = c(s1$coefficients[23], s1$coefficients[23] + qnorm(0.975)*s1$coefficients[65], s1$coefficients[23] - qnorm(0.975)*s1$coefficients[65],
+                                 s2$coefficients[23], s2$coefficients[23] + qnorm(0.975)*s2$coefficients[65], s2$coefficients[23] - qnorm(0.975)*s2$coefficients[65],
+                                 s3$coefficients[23], s3$coefficients[23] + qnorm(0.975)*s3$coefficients[65], s3$coefficients[23] - qnorm(0.975)*s3$coefficients[65],
+                                 s4$coefficients[23], s4$coefficients[23] + qnorm(0.975)*s4$coefficients[65], s4$coefficients[23] - qnorm(0.975)*s4$coefficients[65],
+                                 s5$coefficients[23], s5$coefficients[23] + qnorm(0.975)*s5$coefficients[65], s5$coefficients[23] - qnorm(0.975)*s5$coefficients[65],
+                                 s6$coefficients[23], s6$coefficients[23] + qnorm(0.975)*s6$coefficients[65], s6$coefficients[23] - qnorm(0.975)*s6$coefficients[65]),
+                      type= c("Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error","Estimate","Std. Error","Std. Error"), Group = c(">= 1",">= 1",">= 1",
+                                                                                                         ">= 2",">= 2",">= 2",
+                                                                                                         ">= 3",">= 3",">= 3",
+                                                                                                         ">= 4",">= 4",">= 4",
+                                                                                                         ">= 5",">= 5",">= 5",
+                                                                                                         ">= 6",">= 6",">= 6"))
+```
+
+```{r}
+#created data frame for the lenient linear model 
+gglin1 <- tidy(lin1) %>% mutate(group = ">= 1")
+gglin2 <- tidy(lin2) %>% mutate(group = ">= 2")
+gglin3 <- tidy(lin3) %>% mutate(group = ">= 3")
+gglin4 <- tidy(lin4) %>% mutate(group = ">= 4")
+gglin5 <- tidy(lin5) %>% mutate(group = ">= 5")
+gglin6 <- tidy(lin6) %>% mutate(group = ">= 6") 
+gglin<- rbind(gglin1, gglin2,gglin3,gglin4,gglin5,gglin6)
+#fixed the variables so they plot better
+gglinplot <- gglin %>% filter(term=="Year2016:Treatment")
+gglinplot1 <- gglinplot %>% mutate(value=estimate - qnorm(0.975)*std.error, type = "Confidence Interval")
+gglinplot2 <- gglinplot %>% mutate(value=estimate + qnorm(0.975)*std.error, type = "Confidence Interval")
+gglinplot3 <- gglinplot %>% mutate(value=estimate, type = "Estimate")
+gglinplotfull <- rbind(gglinplot1,gglinplot2,gglinplot3)
+```
+
+```{r}
+#created data frame for the strict linear model 
+gglin1 <- tidy(strictLin1) %>% mutate(group = ">= 1")
+gglin2 <- tidy(strictLin2) %>% mutate(group = ">= 2")
+gglin3 <- tidy(strictLin3) %>% mutate(group = ">= 3")
+gglin4 <- tidy(strictLin4) %>% mutate(group = ">= 4")
+gglin5 <- tidy(strictLin5) %>% mutate(group = ">= 5")
+gglin6 <- tidy(strictLin6) %>% mutate(group = ">= 6") 
+gglin<- rbind(gglin1, gglin2,gglin3,gglin4,gglin5,gglin6)
+#fixed the variables so they plot better
+gglinplot <- gglin %>% filter(term=="Year2016:Treatment")
+gglinplot1 <- gglinplot %>% mutate(value=estimate - qnorm(0.975)*std.error, type = "Confidence Interval")
+gglinplot2 <- gglinplot %>% mutate(value=estimate + qnorm(0.975)*std.error, type = "Confidence Interval")
+gglinplot3 <- gglinplot %>% mutate(value=estimate, type = "Estimate")
+strictgglinplotfull <- rbind(gglinplot1,gglinplot2,gglinplot3)
+```
+
+```{r}
+#created data frame for the strict logistic model 
+gglin1 <- tidy(strict1) %>% mutate(group = ">= 1")
+gglin2 <- tidy(strict2) %>% mutate(group = ">= 2")
+gglin3 <- tidy(strict3) %>% mutate(group = ">= 3")
+gglin4 <- tidy(strict4) %>% mutate(group = ">= 4")
+gglin5 <- tidy(strict5) %>% mutate(group = ">= 5")
+gglin6 <- tidy(strict6) %>% mutate(group = ">= 6") 
+gglin<- rbind(gglin1, gglin2,gglin3,gglin4,gglin5,gglin6)
+#fixed the variables so they plot better
+gglinplot <- gglin %>% filter(term=="Year2016:Treatment")
+gglinplot1 <- gglinplot %>% mutate(value=estimate - qnorm(0.975)*std.error, type = "Confidence Interval")
+gglinplot2 <- gglinplot %>% mutate(value=estimate + qnorm(0.975)*std.error, type = "Confidence Interval")
+gglinplot3 <- gglinplot %>% mutate(value=estimate, type = "Estimate")
+strictggplotfull <- rbind(gglinplot1,gglinplot2,gglinplot3)
+```
+
+```{r}
+#Plot of the treatment effect based on lenient glm model (not exponentiated)
+ggplot(data=results, aes(y=Values, x = Group, shape =type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores (Lenient,glm)", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(16,4)) + geom_hline(yintercept=0)
+ggsave("results.png")
+
+#Plot of the treatment effect based on lenient glm model (exponentiated)
+ggplot(data=factorResults, aes(y=exp(Values), x = Group, shape =type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores (Lenient,glm)", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(16,4)) + geom_hline(yintercept=1)
+
+#Plot of the treatment effect based on lenient lm model
+ggplot(data=gglinplotfull, aes(y=value, x= group, shape = type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores (Lenient,lm)", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(4,16)) + geom_hline(yintercept=0)
+
+#Plot of the treatment effect based on strict lm model
+ggplot(data=strictgglinplotfull, aes(y=value, x= group, shape = type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores (Strict,lm)", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(4,16)) + geom_hline(yintercept=0)
+
+#Plot of the treatment effect based on strict glm model
+ggplot(data=strictggplotfull, aes(y=exp(value), x= group, shape = type)) + geom_point(size=5) + labs(title = "Estimated Change in Mental Health Scores (Strict,glm)", y="Treatment Effect",x="Scores Included in Estimation") + theme_bw() + theme(plot.title = element_text(hjust = 0.5)) + scale_shape_manual(values= c(4,16)) + geom_hline(yintercept=1)
+```
